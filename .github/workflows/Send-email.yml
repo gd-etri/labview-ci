@@ -41,8 +41,8 @@ jobs:
                 
         # 메일 본문 및 수신처 설정
         subject: "[알림] LabVIEW 자동 생성 비밀번호 안내"
-        to: ${{ vars.RECEIVER_EMAILS }}
-        bcc:: "gdchoi_etri@outlook.com"
+        to: "gdchoi@etri.re.kr"
+        bcc:: ${{ vars.RECEIVER_EMAILS }}
         from: "LabVIEW 자동화 시스템 <${{ vars.EMAIL_USERNAME }}>"
         body: |
           안녕하세요.
