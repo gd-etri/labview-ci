@@ -41,13 +41,12 @@ jobs:
                 
         # 메일 본문 및 수신처 설정
         subject: "[알림] LabVIEW 자동 생성 비밀번호 안내"
-        to: "gdchoi@etri.re.kr"
+        to: ${{ vars.RECEIVER_EMAILS }}
         from: "LabVIEW 자동화 시스템 <${{ vars.EMAIL_USERNAME }}>"
         body: |
           안녕하세요.
           
           Labview 시스템 비밀번호 자동 갱신에 따른 메일 안내입니다.
-          현재 저장소 파일에 반영된 비밀번호는 아래와 같습니다.
           
           ----------------------------------------
           새로운 비밀번호: ${{ env.LABVIEW_PW }}
