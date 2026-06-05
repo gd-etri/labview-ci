@@ -29,7 +29,7 @@ jobs:
 
     # 3. 구글 지메일 SMTP를 통해 이메일 발송
     - name: Send Email via Gmail
-      uses: dawidd6/action-send-mail@v3
+      uses: dawidd6/action-send-mail@v4
       with:
         # 구글 지메일 표준 SMTP 설정
         server_address: smtp.gmail.com
