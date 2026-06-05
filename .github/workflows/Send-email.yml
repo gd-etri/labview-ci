@@ -33,7 +33,7 @@ jobs:
       uses: dawidd6/action-send-mail@v3
       with:
         # 두레이 SMTP 서버 정보 설정
-        server_address: smtp.office365.com
+        server_address: smtp-mail.outlook.com
         server_port: 587
         secure: false # ⚠️ 아웃룩 587 포트 사용 시 이 줄이 반드시 'false'여야 합니다!
         
