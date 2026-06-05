@@ -39,7 +39,7 @@ jobs:
         secure: false 
         
         # GitHub Secrets에 저장한 계정 정보 호출
-        username: ${{ secrets.EMAIL_USERNAME }}
+        username: ${{ vars.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
         
         # 메일 본문 및 수신처 설정
