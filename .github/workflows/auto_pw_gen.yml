@@ -1,0 +1,60 @@
+name: Generate and Update Daily Password
+
+on:
+  schedule:
+    # UTC 기준 오후 7시는 한국 시간(KST)으로 다음날 새벽 4시입니다.
+    - cron: '0 19 * * *'
+  workflow_dispatch: # 필요할 때 수동으로도 실행할 수 있도록 버튼을 추가합니다.
+
+jobs:
+  update-password:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. 저장소 체크아웃
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2. Python을 사용하여 6~10자리 랜덤 문자열 생성 및 파일 쓰기
+    - name: Generate Random Password
+      shell: bash
+      run: |
+        python3 -c "
+        import random
+        import string
+
+        # 영문, 숫자, 특수문자 대상 정의 (혼란을 줄 수 있는 일부 특수문자는 조절 가능)
+        chars = string.ascii_letters + string.digits + '!@#$%^&*()'
+        
+        # 6자리에서 10자리 사이의 랜덤한 길이 선택
+        length = random.randint(6, 10)
+        
+        # 안전한 비밀번호 생성을 위해 최소한 영문, 숫자, 특수문자가 각각 1개 이상 포함되도록 보장
+        password = [
+            random.choice(string.ascii_letters),
+            random.choice(string.digits),
+            random.choice('!@#$%^&*()')
+        ]
+        password += [random.choice(chars) for _ in range(length - 3)]
+        random.shuffle(password)
+        final_password = ''.join(password)
+
+        # 파일에 저장 (기존 내용 덮어쓰기)
+        with open('labview-pw.txt', 'w', encoding='utf-8') as f:
+            f.write(final_password)
+        "
+
+    # 3. 변경된 파일을 GitHub에 커밋 및 푸시
+    - name: Commit and Push changes
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # 파일이 실제로 변경되었는지 확인 후 커밋
+        if git diff --exit-code labview-pw.txt; then
+          echo "No changes detected."
+        else
+          git add labview-pw.txt
+          git commit -m "chore: update daily password [skip ci]"
+          git push
+        fi
