@@ -35,6 +35,7 @@ jobs:
         # 두레이 SMTP 서버 정보 설정
         server_address: smtp.office365.com
         server_port: 587
+        secure: false
         
         # GitHub Secrets에 저장한 두레이 계정 정보 호출
         username: ${{ secrets.EMAIL_USERNAME }}
