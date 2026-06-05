@@ -1,4 +1,4 @@
-name: Send Password Email via outlook
+name: Send Password Email via Outlook
 
 on:
   push:
@@ -9,18 +9,18 @@ on:
 jobs:
   read-and-send:
     runs-on: ubuntu-latest
-
     steps:
     # 1. 최신 파일 정보를 읽기 위해 저장소 체크아웃
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # 2. 파일에서 기존 비밀번호 정보를 읽어와 환경 변수로 캡처
+    # 2. 파일에서 기존 비밀번호 정보를 읽어와 환경 변수로 캡처 (줄바꿈 제거 공정 추가)
     - name: Read Password from File
       id: read_pw
       run: |
         if [ -f labview-pw.txt ]; then
-          PW_CONTENT=$(cat labview-pw.txt)
+          # tr 명령어를 통해 혹시 모를 공백이나 줄바꿈 문자를 깔끔하게 제거합니다.
+          PW_CONTENT=$(cat labview-pw.txt | tr -d '\n' | tr -d '\r')
           echo "LABVIEW_PW=$PW_CONTENT" >> $GITHUB_ENV
           echo "Successfully read password from file."
         else
@@ -28,22 +28,23 @@ jobs:
           exit 1
         fi
 
-    # 3. outlook SMTP를 통해 이메일 발송
+    # 3. 아웃룩 SMTP를 통해 이메일 발송
     - name: Send Email via Outlook
       uses: dawidd6/action-send-mail@v3
       with:
-        # 두레이 SMTP 서버 정보 설정
-        server_address: smtp-mail.outlook.com
+        # 공식 오피스365/아웃룩 표준 주소로 변경
+        server_address: smtp.office365.com
         server_port: 587
-        secure: false # ⚠️ 아웃룩 587 포트 사용 시 이 줄이 반드시 'false'여야 합니다!
+        # STARTTLS 인식을 위해 false 설정유지
+        secure: false 
         
-        # GitHub Secrets에 저장한 두레이 계정 정보 호출
+        # GitHub Secrets에 저장한 계정 정보 호출
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
         
         # 메일 본문 및 수신처 설정
         subject: "[알림] LabVIEW 자동 생성 비밀번호 안내"
-        to: "gdchoi@etri.re.kr" # 👈 메일을 수신할 실제 주소를 입력하세요.
+        to: "gdchoi@etri.re.kr"
         from: "LabVIEW 자동화 시스템 <${{ secrets.EMAIL_USERNAME }}>"
         body: |
           안녕하세요.
