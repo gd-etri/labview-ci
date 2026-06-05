@@ -1,4 +1,4 @@
-name: Send Password Email via Outlook
+name: Send Password Email via Gmail
 
 on:
   push:
@@ -14,12 +14,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # 2. 파일에서 기존 비밀번호 정보를 읽어와 환경 변수로 캡처 (줄바꿈 제거 공정 추가)
+    # 2. 파일에서 기존 비밀번호 정보를 읽어와 환경 변수로 캡처
     - name: Read Password from File
       id: read_pw
       run: |
         if [ -f labview-pw.txt ]; then
-          # tr 명령어를 통해 혹시 모를 공백이나 줄바꿈 문자를 깔끔하게 제거합니다.
           PW_CONTENT=$(cat labview-pw.txt | tr -d '\n' | tr -d '\r')
           echo "LABVIEW_PW=$PW_CONTENT" >> $GITHUB_ENV
           echo "Successfully read password from file."
@@ -28,20 +27,18 @@ jobs:
           exit 1
         fi
 
-    # 3. 아웃룩 SMTP를 통해 이메일 발송
-    - name: Send Email via Outlook
+    # 3. 구글 지메일 SMTP를 통해 이메일 발송
+    - name: Send Email via Gmail
       uses: dawidd6/action-send-mail@v3
       with:
-        # 공식 오피스365/아웃룩 표준 주소로 변경
-        server_address: smtp.office365.com
-        server_port: 587
-        # STARTTLS 인식을 위해 false 설정유지
-        secure: false 
+        # 구글 지메일 표준 SMTP 설정
+        server_address: smtp.gmail.com
+        server_port: 465
         
-        # GitHub Secrets에 저장한 계정 정보 호출
+        # GitHub Variables 및 Secrets 데이터 호출
         username: ${{ vars.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
-        
+                
         # 메일 본문 및 수신처 설정
         subject: "[알림] LabVIEW 자동 생성 비밀번호 안내"
         to: "gdchoi@etri.re.kr"
