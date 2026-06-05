@@ -2,59 +2,92 @@ name: Generate and Update Daily Password
 
 on:
   schedule:
-    # UTC 기준 오후 7시는 한국 시간(KST)으로 다음날 새벽 4시입니다.
-    - cron: '0 22 * * *'
+    # 💡 수정: 한국 시간(KST) 매일 아침 7시는 UTC 기준 전날 오후 10시입니다. (0 22 * * *)
+    # 💡 수정: '1-5'를 추가하여 월, 화, 수, 목, 금요일에만 실행되도록 합니다. (토, 일 제외)
+    - cron: '0 22 * * 1-5'
   workflow_dispatch: # 필요할 때 수동으로도 실행할 수 있도록 버튼을 추가합니다.
 
 jobs:
   update-password:
     runs-on: ubuntu-latest
-
     steps:
     # 1. 저장소 체크아웃
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # 2. Python을 사용하여 6~10자리 랜덤 문자열 생성 및 파일 쓰기
-    - name: Generate Random Password
+    # 🌟 2. 한국 공휴일 자동 체크 (공휴일이면 워크플로우 종료)
+    - name: Check if today is a Korean Holiday
+      id: holiday-check
       shell: bash
       run: |
         python3 -c "
-        import random
-        import string
+        import urllib.request
+        import json
+        from datetime import datetime, timedelta
 
-        # 영문, 숫자, 특수문자 대상 정의 (혼란을 줄 수 있는 일부 특수문자는 조절 가능)
-        chars = string.ascii_letters + string.digits + '!@#$%^&*()'
-        
-        # 6자리에서 10자리 사이의 랜덤한 길이 선택
-        length = random.randint(6, 10)
-        
-        # 안전한 비밀번호 생성을 위해 최소한 영문, 숫자, 특수문자가 각각 1개 이상 포함되도록 보장
-        password = [
-            random.choice(string.ascii_letters),
-            random.choice(string.digits),
-            random.choice('!@#$%^&*()')
-        ]
-        password += [random.choice(chars) for _ in range(length - 3)]
-        random.shuffle(password)
-        final_password = ''.join(password)
+        # GitHub Runner는 기본적으로 UTC 기준이므로 한국 시간(KST)으로 변환합니다.
+        kst_now = datetime.utcnow() + timedelta(hours=9)
+        today_str = kst_now.strftime('%Y-%m-%d')
+        year = kst_now.strftime('%Y')
 
-        # 파일에 저장 (기존 내용 덮어쓰기)
-        with open('labview-pw.txt', 'w', encoding='utf-8') as f:
-            f.write(final_password)
+        is_holiday = 'false'
+        try:
+            # 💡 공공데이터포털 대신 사용 가능한 오픈 API (공휴일 정보 제공)
+            url = f'https://date.nager.at/api/v3/PublicHolidays/{year}/KR'
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req) as response:
+                holidays = json.loads(response.read().decode('utf-8'))
+                
+                # API에서 반환된 공휴일 날짜 리스트와 오늘 날짜 비교
+                holiday_dates = [h['date'] for h in holidays]
+                if today_str in holiday_dates:
+                    print(f'🚨 오늘은 한국 공휴일({today_str})입니다. 작업을 건너뜁니다.')
+                    is_holiday = 'true'
+                else:
+                    print(f'✅ 오늘은 평일({today_str})이며 공휴일이 아닙니다.')
+        except Exception as e:
+            print(f'⚠️ 공휴일 API 조회 실패 (오류: {e}). 안전을 위해 진행합니다.')
+
+        # GitHub Actions 환경 변수에 결과 저장
+        print(f'is_holiday={is_holiday}')
+        with open('$GITHUB_OUTPUT', 'a') as f:
+            f.write(f'is_holiday={is_holiday}\n')
         "
 
-    # 3. 변경된 파일을 GitHub에 커밋 및 푸시
-    - name: Commit and Push changes
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        
-        # 파일이 실제로 변경되었는지 확인 후 커밋
-        if git diff --exit-code labview-pw.txt; then
-          echo "No changes detected."
-        else
-          git add labview-pw.txt
-          git commit -m "chore: update daily password [skip ci]"
-          git push
-        fi
+    # 3. Python을 사용하여 6~10자리 랜덤 문자열 생성 및 파일 쓰기
+    # 💡 조건 추가: 이전 단계에서 공휴일이 아닐 때만(false) 실행됩니다.
+    if: steps.holiday-check.outputs.is_holiday == 'false'
+    name: Generate Random Password
+    shell: bash
+    run: |
+      python3 -c "
+      import random
+      import string
+      chars = string.ascii_letters + string.digits + '!@#$%^&*()'
+      length = random.randint(6, 10)
+      password = [
+          random.choice(string.ascii_letters),
+          random.choice(string.digits),
+          random.choice('!@#$%^&*()')
+      ]
+      password += [random.choice(chars) for _ in range(length - 3)]
+      random.shuffle(password)
+      final_password = ''.join(password)
+      with open('labview-pw.txt', 'w', encoding='utf-8') as f:
+          f.write(final_password)
+      "
+
+    # 4. 변경된 파일을 GitHub에 커밋 및 푸시
+    # 💡 조건 추가: 이전 단계에서 공휴일이 아닐 때만(false) 실행됩니다.
+    if: steps.holiday-check.outputs.is_holiday == 'false'
+    name: Commit and Push changes
+    run: |
+      git config --global user.name "github-actions[bot]"
+      git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      if git diff --exit-code labview-pw.txt; then
+        echo "No changes detected."
+      else
+        git add labview-pw.txt
+        git commit -m "chore: update daily password [skip ci]"
+        git push
+      fi
