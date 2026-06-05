@@ -1,4 +1,4 @@
-name: 2. Send Password Email via Dooray
+name: Send Password Email via Dooray
 
 on:
   push:
