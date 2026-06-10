@@ -17,6 +17,10 @@ jobs:
     # 1. 저장소 체크아웃
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        # ⚠️ 기본 GITHUB_TOKEN 대신 본인의 PAT를 사용하여 체크아웃합니다.
+        # 이렇게 하면 봇이 푸시하더라도 실제 유저가 푸시한 효과를 내어 메일 액션을 깨웁니다.
+        token: ${{ secrets.ACTIONS_PUSH_TOKEN_GD }}
 
     # 🌟 2. 한국 공휴일 자동 체크
     - name: Check if today is a Korean Holiday
