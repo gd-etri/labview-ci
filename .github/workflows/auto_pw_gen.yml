@@ -2,8 +2,12 @@ name: Generate and Update Daily Password
 
 on:
   schedule:
-    # 💡 수정: KST 월~금 아침 7시는 UTC 기준 일~목 밤 22시이므로 '0-4'가 맞습니다.
+    # 💡 KST 월~금 아침 7시는 UTC 기준 일~목 밤 22시 (0 22 * * 0-4)
     - cron: '0 22 * * 0-4'
+  push:
+    # 💡 중요: 봇이 파일을 푸시했을 때 이 워크플로우가 다시 실행되는 무한 루프를 원천 차단합니다.
+    paths-ignore:
+      - 'labview-pw.txt'
   workflow_dispatch: # 수동 실행 버튼
 
 jobs:
@@ -25,7 +29,6 @@ jobs:
         import os
         from datetime import datetime, timedelta
 
-        # GitHub Runner(UTC) 시간을 한국 시간(KST)으로 변환
         kst_now = datetime.utcnow() + timedelta(hours=9)
         today_str = kst_now.strftime('%Y-%m-%d')
         year = kst_now.strftime('%Y')
@@ -46,7 +49,6 @@ jobs:
         except Exception as e:
             print(f'⚠️ 공휴일 API 조회 실패 (오류: {e}). 안전을 위해 진행합니다.')
 
-        # 💡 수정: os.environ을 사용하여 GitHub 시스템 변수 경로에 정확히 값을 기록합니다.
         output_file = os.environ.get('GITHUB_OUTPUT')
         if output_file:
             with open(output_file, 'a') as f:
@@ -85,6 +87,7 @@ jobs:
           echo "No changes detected."
         else
           git add labview-pw.txt
-          git commit -m "chore: update daily password [skip ci]"
+          # 💡 수정: 후속 메일 발송 액션이 차단되지 않도록 [skip ci]를 완전히 제거했습니다.
+          git commit -m "chore: update daily password"
           git push
         fi
