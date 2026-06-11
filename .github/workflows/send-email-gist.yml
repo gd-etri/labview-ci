@@ -14,10 +14,10 @@ jobs:
     - name: Fetch Password from GitHub Gist
       id: get_pw
       env:
-        PW_GIST_ID: ${{ secrets.PW_GIST_ID }}
+        GIST_ID: ${{ secrets.PW_GIST_ID }}
       run: |
         # 비공개(Secret) Gist라도 파일의 raw URL을 통해 토큰 없이 텍스트만 깔끔하게 가져올 수 있습니다.
-        PW_CONTENT=$(curl -s "https://gist.githubusercontent.com/raw/${PW_GIST_ID}/labview-pw.txt" | tr -d '\n' | tr -d '\r')
+        PW_CONTENT=$(curl -s "https://gist.githubusercontent.com/raw/${GIST_ID}/labview-pw.txt" | tr -d '\n' | tr -d '\r')
         
         if [ -z "$PW_CONTENT" ]; then
           echo "Error: Failed to fetch password from Gist or file is empty!"
