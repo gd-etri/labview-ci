@@ -49,7 +49,7 @@ jobs:
       env:
         # GitHub Actions 환경 변수로 비밀 값들 세팅
         GH_TOKEN: ${{ secrets.ACTIONS_PUSH_TOKEN_GD }}
-        GIST_ID: ${{ secrets.GIST_ID }}
+        GIST_ID: ${{ secrets.PW_GIST_ID }}
       shell: bash
       run: |
         python3 -c "
