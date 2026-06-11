@@ -1,0 +1,52 @@
+name: Send Password Email via Gmail (gist)
+
+on:
+  # 💡 중요: 외부(비밀번호 생성 액션)에서 보낸 'trigger-email' 신호를 받으면 작동합니다.
+  repository_dispatch:
+    types: [trigger-email]
+  workflow_dispatch: # 수동 테스트용 버튼 유지
+
+jobs:
+  read-and-send:
+    runs-on: ubuntu-latest
+    steps:
+    # 1. GitHub Gist에서 최신 비밀번호 다운로드 받아 환경 변수에 저장
+    - name: Fetch Password from GitHub Gist
+      id: get_pw
+      env:
+        GIST_ID: ${{ secrets.GIST_ID }}
+      run: |
+        # 비공개(Secret) Gist라도 파일의 raw URL을 통해 토큰 없이 텍스트만 깔끔하게 가져올 수 있습니다.
+        PW_CONTENT=$(curl -s "https://gist.githubusercontent.com/raw/${GIST_ID}/labview-pw.txt" | tr -d '\n' | tr -d '\r')
+        
+        if [ -z "$PW_CONTENT" ]; then
+          echo "Error: Failed to fetch password from Gist or file is empty!"
+          exit 1
+        fi
+        
+        echo "LABVIEW_PW=$PW_CONTENT" >> $GITHUB_ENV
+        echo "Successfully fetched password from Gist."
+
+    # 2. 구글 지메일 SMTP를 통해 이메일 발송 (HTML 양식 및 빨간색 bold 적용)
+    - name: Send Email via Gmail
+      uses: dawidd6/action-send-mail@v4
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+                
+        username: ${{ vars.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+                        
+        subject: "[알림] LabVIEW 자동 생성 비밀번호 안내"
+        to: "gdchoi@etri.re.kr"
+        bcc: ${{ vars.RECEIVER_EMAILS }}
+        from: "LabVIEW 자동화 시스템 <${{ vars.EMAIL_USERNAME }}>"
+        
+        html_body: |
+          안녕하세요.<br><br>
+          Labview 시스템 비밀번호 자동 갱신에 따른 메일 안내입니다.<br><br>
+          -------------------------------------------------<br>
+          새로운 비밀번호: <strong>${{ env.LABVIEW_PW }}</strong><br>
+          -------------------------------------------------<br>
+          <span style="color: red;">수신자외 사용/공유 불가</span><br><br>
+          본 메일은 시스템에 의해 자동으로 발송되었습니다.
