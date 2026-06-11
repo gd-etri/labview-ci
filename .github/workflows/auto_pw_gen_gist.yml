@@ -1,4 +1,4 @@
-name: Generate and Update Daily Password
+name: Generate and Update Daily Password (gist)
 
 on:
   schedule:
