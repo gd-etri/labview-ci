@@ -3,14 +3,14 @@ name: Generate and Update Daily Password (gist)
 on:
   schedule:
     # KST 월~금 아침 7시 (UTC 일~목 밤 22시)
-    - cron: '17 20,02 * * 0-4'
+    - cron: '37 20,08 * * 0-4'
   workflow_dispatch: # 수동 실행 버튼
 
 jobs:
   update-password:
     runs-on: ubuntu-latest
     steps:
-    # 1. 한국 공휴일 자동 체크 (체크아웃 없이도 파ython 기본 라이브러리로 작동 가능)
+    # 1. 한국 공휴일 자동 체크 (체크아웃 없이도 python 기본 라이브러리로 작동 가능)
     - name: Check if today is a Korean Holiday
       id: holiday-check
       shell: bash
