@@ -3,8 +3,10 @@ name: Generate and Update Daily Password (gist)
 on:
   schedule:
     # KST 월~금 아침 7시 (UTC 일~목 밤 22시)
+    # - cron: '37 20 * * 0-4'
+    # - cron: '37 08 * * 1-5'
     - cron: '37 20 * * 0-4'
-    - cron: '37 08 * * 1-5'
+    - cron: '37 08 * * *'
   workflow_dispatch: # 수동 실행 버튼
 
 jobs:
