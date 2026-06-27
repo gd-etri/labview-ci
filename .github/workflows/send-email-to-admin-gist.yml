@@ -43,7 +43,7 @@ jobs:
         from: "LabVIEW 자동화 시스템 <${{ vars.EMAIL_USERNAME }}>"
         
         html_body: |
-          <span style="color: red;">관리자 [admin]에게 전송되는 메일 입니다.</span><br><br>
+          <span style="color: red; font-weight: bold;">관리자[admin]에게 전송되는 메일 입니다.</span><br><br>
           안녕하세요.<br><br>
           Labview 시스템 비밀번호 자동 갱신에 따른 메일 안내입니다.<br><br>
           -------------------------------------------------<br>
