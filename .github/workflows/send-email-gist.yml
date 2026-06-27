@@ -40,7 +40,7 @@ jobs:
         subject: "[알림] LabVIEW 자동 생성 비밀번호 안내"
         to: "gdchoi@etri.re.kr"
         bcc: ${{ vars.RECEIVER_EMAILS }}
-        from: "LabVIEW 자동화 시스템 <${{ vars.EMAIL_USERNAME }}>"
+        from: "LabVIEW 자동화 시스템"
         
         html_body: |
           안녕하세요.<br><br>
