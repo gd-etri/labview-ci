@@ -95,8 +95,8 @@ jobs:
             passwords.append(''.join(password))
         final_password = ', '.join(passwords)
 
-        gist_id = os.environ['GIST_ID']
-        print(f'사용된 Gist ID: {gist_id}')  # 임시 추가
+        # gist_id = os.environ['GIST_ID']
+        # print(f'사용된 Gist ID: {gist_id}')  # 임시 추가
         
     #     # 🌐 2. GitHub API를 통해 Gist 패치(업데이트) 요청
     #     gist_id = os.environ['GIST_ID']
