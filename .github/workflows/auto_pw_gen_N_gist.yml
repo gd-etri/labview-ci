@@ -54,6 +54,7 @@ jobs:
         # GitHub Actions 환경 변수로 비밀 값들 세팅
         GH_TOKEN: ${{ secrets.ACTIONS_PUSH_TOKEN_GD }}
         GIST_ID: ${{ secrets.PW_GIST_ID }}
+        RECEIVER_EMAILS: ${{ vars.RECEIVER_EMAILS }}
       shell: bash
       run: |
         python3 -c "
@@ -79,8 +80,9 @@ jobs:
         #     if i<len(vars.RECEIVER_EMAILS)-1: final_password +=', '
 
         # clude 추천
+        receiver_emails = os.environ.get('RECEIVER_EMAILS', '').split(',')
         passwords = []
-        for _ in vars.RECEIVER_EMAILS:
+        for _ in receiver_emails:
             length = random.randint(6, 10)  # 매 비밀번호마다 다른 길이
             password = [
                 random.choice(string.ascii_letters),
