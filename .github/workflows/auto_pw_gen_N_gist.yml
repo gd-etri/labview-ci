@@ -54,7 +54,7 @@ jobs:
         # GitHub Actions 환경 변수로 비밀 값들 세팅
         GH_TOKEN: ${{ secrets.ACTIONS_PUSH_TOKEN_GD }}
         GIST_ID: ${{ secrets.PW_GIST_ID }}
-        RECEIVER_EMAILS: ${{ vars.RECEIVER_EMAILS }}
+        # RECEIVER_EMAILS: ${{ vars.RECEIVER_EMAILS }}
       shell: bash
       run: |
         python3 -c "
@@ -80,7 +80,8 @@ jobs:
         #     if i<len(vars.RECEIVER_EMAILS)-1: final_password +=', '
 
         # clude 추천
-        receiver_emails = os.environ.get('RECEIVER_EMAILS', '').split(',')
+        # receiver_emails = os.environ.get('RECEIVER_EMAILS', '').split(',')
+        receiver_emails = '${{ vars.RECEIVER_EMAILS }}'.split(',') # env:에 추가 없이 Python에서 직접
         passwords = []
         for _ in receiver_emails:
             length = random.randint(6, 10)  # 매 비밀번호마다 다른 길이
@@ -94,6 +95,8 @@ jobs:
             passwords.append(''.join(password))
         final_password = ', '.join(passwords)
 
+        gist_id = os.environ['GIST_ID']
+        print(f'사용된 Gist ID: {gist_id}')  # 임시 추가
         
     #     # 🌐 2. GitHub API를 통해 Gist 패치(업데이트) 요청
     #     gist_id = os.environ['GIST_ID']
