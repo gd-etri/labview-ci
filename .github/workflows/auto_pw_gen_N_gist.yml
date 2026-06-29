@@ -123,6 +123,11 @@ jobs:
             print(f'🚨 Gist 업데이트 실패: {e}')
             exit(1)
         "
+
+        # debuging
+        gist_id = os.environ['GIST_ID']
+        print(f'사용된 Gist ID: {gist_id}')  # 임시 추가
+
     # # 🌟 3. 메일 발송 워크플로우(send-email-gist.yml)에 원격 실행 신호 전송
     # - name: Trigger Email Workflow
     #   if: steps.holiday-check.outputs.is_holiday == 'false'
