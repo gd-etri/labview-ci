@@ -32,21 +32,22 @@ jobs:
       run: |
         python3 << 'EOF'
         import os
-
+        import html
+    
         passwords = os.environ['LABVIEW_PW'].split(',')
         emails = os.environ['RECEIVER_EMAILS'].split(',')
-
+    
         passwords = [p.strip() for p in passwords]
-        emails = [e.strip() for e in emails]
-
+        emails = [html.escape(e.strip()) for e in emails]
+    
         if len(passwords) != len(emails):
             print(f"Error: 개수 불일치 - passwords: {len(passwords)}, emails: {len(emails)}")
             exit(1)
-
+    
         rows = ""
         for email, pw in zip(emails, passwords):
             rows += f'<tr><td style="padding:8px; border:1px solid #ddd;">{email}</td><td style="padding:8px; border:1px solid #ddd;"><strong>{pw}</strong></td></tr>\n'
-
+    
         table_html = f'''<table style="border-collapse:collapse; width:100%; max-width:500px;">
           <tr style="background-color:#f2f2f2;">
             <th style="padding:8px; border:1px solid #ddd; text-align:left;">수신자 이메일</th>
@@ -54,8 +55,7 @@ jobs:
           </tr>
           {rows}
         </table>'''
-
-        # 여러 줄 출력은 GITHUB_OUTPUT에 delimiter 방식으로 저장
+    
         output_file = os.environ.get('GITHUB_OUTPUT')
         with open(output_file, 'a') as f:
             f.write("table<<EOF_TABLE\n")
