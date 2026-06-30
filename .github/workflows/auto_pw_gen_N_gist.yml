@@ -100,38 +100,33 @@ jobs:
         gist_id = os.environ['GIST_ID']
         token = os.environ['GH_TOKEN']
 
-        print(f'사용된 Gist ID: {gist_id}')  # 임시 추가
-        print(f'Gist ID 앞4자리: {gist_id[:4]}')  # secrets 마스킹 우회
-
-        with urllib.request.urlopen(req) as response:
-          if response.status == 200:
-              result = json.loads(response.read().decode('utf-8'))
-              print(f'업데이트된 Gist URL: {result["html_url"]}')  # 실제 URL 출력
+        # print(f'사용된 Gist ID: {gist_id}')  # 임시 추가
+        # print(f'Gist ID 앞4자리: {gist_id[:8]}')  # secrets 마스킹 우회
         
-        # url = f'https://api.github.com/gists/{gist_id}'
-        # headers = {
-        #     'Authorization': f'Bearer {token}',
-        #     'Accept': 'application/vnd.github+json'
-        # }
+        url = f'https://api.github.com/gists/{gist_id}'
+        headers = {
+            'Authorization': f'Bearer {token}',
+            'Accept': 'application/vnd.github+json'
+        }
         
-        # # Gist 내부의 'labview-pw-N.txt' 파일 내용 수정 데이터 구성
-        # data = {
-        #     'files': {
-        #         'labview-pw-N.txt': {
-        #             'content': final_password
-        #         }
-        #     }
-        # }
+        # Gist 내부의 'labview-pw-N.txt' 파일 내용 수정 데이터 구성
+        data = {
+            'files': {
+                'labview-pw-N.txt': {
+                    'content': final_password
+                }
+            }
+        }
         
-        # req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers, method='PATCH')
-        # try:
-        #     with urllib.request.urlopen(req) as response:
-        #         if response.status == 200:
-        #             print('🎉 Gist 비밀번호가 성공적으로 업데이트되었습니다!')
-        #             print(f'생성된 비밀번호: {final_password}')
-        # except Exception as e:
-        #     print(f'🚨 Gist 업데이트 실패: {e}')
-        #     exit(1)
+        req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers, method='PATCH')
+        try:
+            with urllib.request.urlopen(req) as response:
+                if response.status == 200:
+                    print('🎉 Gist 비밀번호가 성공적으로 업데이트되었습니다!')
+                    print(f'생성된 비밀번호: {final_password}')
+        except Exception as e:
+            print(f'🚨 Gist 업데이트 실패: {e}')
+            exit(1)
         "
 
     # # # 🌟 3. 메일 발송 워크플로우(send-email-gist.yml)에 원격 실행 신호 전송
