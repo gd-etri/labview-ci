@@ -33,12 +33,13 @@ jobs:
         python3 << 'EOF'
         import os
         import html
+        import re
     
         passwords = os.environ['LABVIEW_PW'].split(',')
         emails = os.environ['RECEIVER_EMAILS'].split(',')
     
         passwords = [p.strip() for p in passwords]
-        emails = [html.escape(e.strip()) for e in emails]
+        emails = [e.strip() for e in emails]
     
         if len(passwords) != len(emails):
             print(f"Error: 개수 불일치 - passwords: {len(passwords)}, emails: {len(emails)}")
@@ -46,11 +47,28 @@ jobs:
     
         rows = ""
         for email, pw in zip(emails, passwords):
-            rows += f'<tr><td style="padding:8px; border:1px solid #ddd;">{email}</td><td style="padding:8px; border:1px solid #ddd;"><strong>{pw}</strong></td></tr>\n'
+            # "이름<주소>" 형식을 이름/주소로 분리
+            match = re.match(r'^(.*)<(.+)>$', email)
+            if match:
+                name = match.group(1).strip()
+                address = match.group(2).strip()
+            else:
+                name = ""
+                address = email
     
-        table_html = f'''<table style="border-collapse:collapse; width:100%; max-width:500px;">
+            name = html.escape(name)
+            address = html.escape(address)
+    
+            rows += f'''<tr>
+              <td style="padding:8px; border:1px solid #ddd;">{name}</td>
+              <td style="padding:8px; border:1px solid #ddd;">{address}</td>
+              <td style="padding:8px; border:1px solid #ddd;"><strong>{pw}</strong></td>
+            </tr>\n'''
+    
+        table_html = f'''<table style="border-collapse:collapse; width:100%; max-width:600px;">
           <tr style="background-color:#f2f2f2;">
-            <th style="padding:8px; border:1px solid #ddd; text-align:left;">수신자 이메일</th>
+            <th style="padding:8px; border:1px solid #ddd; text-align:left;">수신자</th>
+            <th style="padding:8px; border:1px solid #ddd; text-align:left;">이메일</th>
             <th style="padding:8px; border:1px solid #ddd; text-align:left;">비밀번호</th>
           </tr>
           {rows}
