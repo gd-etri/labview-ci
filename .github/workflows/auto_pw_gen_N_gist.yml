@@ -65,7 +65,7 @@ jobs:
         import os
 
         gist_id = os.environ['GIST_ID']
-        print(f'사용된 Gist ID: {gist_id}')  # 임시 추가
+        print("사용된 Gist ID: " + gist_id)
         
         # # 🔑 1. 랜덤 비밀번호 생성 로직 (RECEIVER_EMAILS 수 만큼)
         # chars = string.ascii_letters + string.digits + '!@#$%^&*()'
