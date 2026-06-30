@@ -12,7 +12,7 @@ jobs:
     outputs:
       matrix: ${{ steps.build-matrix.outputs.matrix }}
     env:
-      GIST_ID: ${{ secrets.PW_GIST_ID }}
+      GIST_ID: ${{ secrets.LABVIEW_GIST_ID }}
     steps:
       - name: Fetch Password from Gist and Build Matrix
         id: build-matrix
