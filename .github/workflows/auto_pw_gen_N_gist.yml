@@ -67,11 +67,27 @@ jobs:
         gist_id = os.environ['GIST_ID']
         print(f'사용된 Gist ID: {gist_id}')  # 임시 추가
         
-        # 🔑 1. 랜덤 비밀번호 생성 로직 (RECEIVER_EMAILS 수 만큼)
-        chars = string.ascii_letters + string.digits + '!@#$%^&*()'
-        # length = random.randint(6, 10)
-        # final_password=''
-        # for i in range(len(vars.RECEIVER_EMAILS)):
+        # # 🔑 1. 랜덤 비밀번호 생성 로직 (RECEIVER_EMAILS 수 만큼)
+        # chars = string.ascii_letters + string.digits + '!@#$%^&*()'
+        # # length = random.randint(6, 10)
+        # # final_password=''
+        # # for i in range(len(vars.RECEIVER_EMAILS)):
+        # #     password = [
+        # #         random.choice(string.ascii_letters),
+        # #         random.choice(string.digits),
+        # #         random.choice('!@#$%^&*()')
+        # #     ]
+        # #     password += [random.choice(chars) for _ in range(length - 3)]
+        # #     random.shuffle(password)
+        # #     final_password += ''.join(password)
+        # #     if i<len(vars.RECEIVER_EMAILS)-1: final_password +=', '
+
+        # # clude 추천
+        # # receiver_emails = os.environ.get('RECEIVER_EMAILS', '').split(',')
+        # receiver_emails = '${{ vars.RECEIVER_EMAILS }}'.split(',') # env:에 추가 없이 Python에서 직접
+        # passwords = []
+        # for _ in receiver_emails:
+        #     length = random.randint(6, 10)  # 매 비밀번호마다 다른 길이
         #     password = [
         #         random.choice(string.ascii_letters),
         #         random.choice(string.digits),
@@ -79,24 +95,8 @@ jobs:
         #     ]
         #     password += [random.choice(chars) for _ in range(length - 3)]
         #     random.shuffle(password)
-        #     final_password += ''.join(password)
-        #     if i<len(vars.RECEIVER_EMAILS)-1: final_password +=', '
-
-        # clude 추천
-        # receiver_emails = os.environ.get('RECEIVER_EMAILS', '').split(',')
-        receiver_emails = '${{ vars.RECEIVER_EMAILS }}'.split(',') # env:에 추가 없이 Python에서 직접
-        passwords = []
-        for _ in receiver_emails:
-            length = random.randint(6, 10)  # 매 비밀번호마다 다른 길이
-            password = [
-                random.choice(string.ascii_letters),
-                random.choice(string.digits),
-                random.choice('!@#$%^&*()')
-            ]
-            password += [random.choice(chars) for _ in range(length - 3)]
-            random.shuffle(password)
-            passwords.append(''.join(password))
-        final_password = ', '.join(passwords)
+        #     passwords.append(''.join(password))
+        # final_password = ', '.join(passwords)
 
         
     #     # 🌐 2. GitHub API를 통해 Gist 패치(업데이트) 요청
