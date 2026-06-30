@@ -12,7 +12,7 @@ jobs:
     - name: Fetch Password from GitHub Gist
       id: get_pw
       env:
-        GIST_ID: ${{ secrets.PW_GIST_ID }}
+        GIST_ID: ${{ secrets.LABVIEW_GIST_ID }}
       run: |
         PW_CONTENT=$(curl -s "https://gist.githubusercontent.com/raw/${GIST_ID}/labview-pw-N.txt" | tr -d '\n' | tr -d '\r')
 
