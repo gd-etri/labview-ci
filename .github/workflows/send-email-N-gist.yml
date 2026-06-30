@@ -1,0 +1,71 @@
+name: Send Password Email via Gmail N (gist)
+
+on:
+  repository_dispatch:
+    types: [trigger-email-N]
+  workflow_dispatch:
+
+jobs:
+  # 1. 먼저 Gist에서 비밀번호/이메일을 가져와서 매칭 데이터 생성
+  prepare-data:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.build-matrix.outputs.matrix }}
+    env:
+      GIST_ID: ${{ secrets.PW_GIST_ID }}
+    steps:
+      - name: Fetch Password from Gist and Build Matrix
+        id: build-matrix
+        run: |
+          PW_CONTENT=$(curl -s "https://gist.githubusercontent.com/raw/${GIST_ID}/labview-pw-N.txt" | tr -d '\n' | tr -d '\r')
+
+          if [ -z "$PW_CONTENT" ]; then
+            echo "Error: Failed to fetch password from Gist or file is empty!"
+            exit 1
+          fi
+
+          python3 << EOF
+          import json
+          import os
+
+          passwords = "$PW_CONTENT".split(',')
+          emails = "${{ vars.RECEIVER_EMAILS }}".split(',')
+
+          if len(passwords) != len(emails):
+              print(f"Error: 개수 불일치 - passwords: {len(passwords)}, emails: {len(emails)}")
+              exit(1)
+
+          pairs = [{"email": e.strip(), "password": p.strip()} for e, p in zip(emails, passwords)]
+
+          output_file = os.environ.get('GITHUB_OUTPUT')
+          with open(output_file, 'a') as f:
+              f.write(f"matrix={json.dumps(pairs)}\n")
+          EOF
+
+  # 2. 각 이메일-비밀번호 쌍에 대해 개별 발송
+  send-emails:
+    needs: prepare-data
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        pair: ${{ fromJson(needs.prepare-data.outputs.matrix) }}
+    steps:
+      - name: Send Email via Gmail
+        uses: dawidd6/action-send-mail@v4
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ vars.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "[알림] LabVIEW 자동 생성 비밀번호 안내"
+          to: ${{ matrix.pair.email }}
+          bcc: "gdchoi@etri.re.kr"
+          from: "LabVIEW 자동화 시스템 <${{ vars.EMAIL_USERNAME }}>"
+          html_body: |
+            안녕하세요.<br><br>
+            Labview 시스템 비밀번호 자동 갱신에 따른 메일 안내입니다.<br><br>
+            -------------------------------------------------<br>
+            새로운 비밀번호: <strong>${{ matrix.pair.password }}</strong><br>
+            -------------------------------------------------<br>
+            <span style="color: red;">수신자외 사용/공유 불가</span><br><br>
+            본 메일은 시스템에 의해 자동으로 발송되었습니다.
