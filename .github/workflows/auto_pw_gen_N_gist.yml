@@ -66,6 +66,7 @@ jobs:
 
         gist_id = os.environ['GIST_ID']
         print("사용된 Gist ID: " + gist_id)
+        "
         
         # # 🔑 1. 랜덤 비밀번호 생성 로직 (RECEIVER_EMAILS 수 만큼)
         # chars = string.ascii_letters + string.digits + '!@#$%^&*()'
