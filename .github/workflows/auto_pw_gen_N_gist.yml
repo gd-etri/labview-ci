@@ -116,7 +116,7 @@ jobs:
             'files': {
                 'labview-pw-N.txt': {
                     'content': final_password
-                }
+                },
                 'labview-id-N.txt': {
                     'content': receiver_emails
                 }
