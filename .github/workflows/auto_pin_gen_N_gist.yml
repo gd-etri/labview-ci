@@ -86,7 +86,7 @@ jobs:
         passwords = []
         for _ in receiver_emails:
             # length = random.randint(6, 10)  # 매 비밀번호마다 다른 길이
-            length = random.randint(5)  # 고정 길이
+            length = random.randint(5, 5)  # 고정 길이
             password = [
                 # random.choice(string.ascii_letters),
                 random.choice(string.digits),
