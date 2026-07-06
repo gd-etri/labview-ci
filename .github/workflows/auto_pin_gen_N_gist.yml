@@ -90,7 +90,7 @@ jobs:
                 random.choice(string.digits),
                 # random.choice('!@#$%^&*()')
             ]
-            password += [random.choice(chars) for _ in range(length - 3)]
+            # password += [random.choice(chars) for _ in range(length - 3)]
             random.shuffle(password)
             passwords.append(''.join(password))
         final_password = ', '.join(passwords)
