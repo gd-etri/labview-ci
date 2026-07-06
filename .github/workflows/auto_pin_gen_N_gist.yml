@@ -15,6 +15,12 @@ jobs:
   update-password:
     runs-on: ubuntu-latest
     steps:
+
+    - name: Check Message from LabVIEW
+      # 이 부분에서 client_payload 내부의 message를 읽어와 출력합니다.
+      run: |
+        echo "LabVIEW에서 보낸 메시지: ${{ github.event.client_payload.message }}"
+          
     # 1. 한국 공휴일 자동 체크 (체크아웃 없이도 python 기본 라이브러리로 작동 가능)
     - name: Check if today is a Korean Holiday
       id: holiday-check
