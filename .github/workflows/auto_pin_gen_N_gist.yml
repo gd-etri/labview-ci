@@ -65,19 +65,20 @@ jobs:
         import os
         
         # 🔑 1. 랜덤 비밀번호 생성 로직 (RECEIVER_EMAILS 수 만큼)
-        chars = string.ascii_letters + string.digits + '!@#$%^&*()'
-        # length = random.randint(6, 10)
-        # final_password=''
-        # for i in range(len(vars.RECEIVER_EMAILS)):
-        #     password = [
-        #         random.choice(string.ascii_letters),
-        #         random.choice(string.digits),
-        #         random.choice('!@#$%^&*()')
-        #     ]
-        #     password += [random.choice(chars) for _ in range(length - 3)]
-        #     random.shuffle(password)
-        #     final_password += ''.join(password)
-        #     if i<len(vars.RECEIVER_EMAILS)-1: final_password +=', '
+        # chars = string.ascii_letters + string.digits + '!@#$%^&*()'
+        chars = string.digits # only numbers
+        # # length = random.randint(6, 10)
+        # # final_password=''
+        # # for i in range(len(vars.RECEIVER_EMAILS)):
+        # #     password = [
+        # #         random.choice(string.ascii_letters),
+        # #         random.choice(string.digits),
+        # #         random.choice('!@#$%^&*()')
+        # #     ]
+        # #     password += [random.choice(chars) for _ in range(length - 3)]
+        # #     random.shuffle(password)
+        # #     final_password += ''.join(password)
+        # #     if i<len(vars.RECEIVER_EMAILS)-1: final_password +=', '
 
         # clude 추천
         # receiver_emails = os.environ.get('RECEIVER_EMAILS', '').split(',')
@@ -90,7 +91,7 @@ jobs:
                 random.choice(string.digits),
                 # random.choice('!@#$%^&*()')
             ]
-            # password += [random.choice(chars) for _ in range(length - 3)]
+            password += [random.choice(chars) for _ in range(length - 3)]
             random.shuffle(password)
             passwords.append(''.join(password))
         final_password = ', '.join(passwords)
