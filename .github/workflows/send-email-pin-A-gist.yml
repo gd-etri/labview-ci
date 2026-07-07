@@ -1,0 +1,113 @@
+name: Send Password Email via Gmail N (gist)
+
+on:
+  repository_dispatch:
+    types: [trigger-email-pin-A]
+  workflow_dispatch:
+
+jobs:
+  # 1. Gist에서 현재 대상 ID, 비밀번호, 이메일을 가져와서 매칭 및 필터링 데이터 생성
+  prepare-data:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.build-matrix.outputs.matrix }}
+      has_target: ${{ steps.build-matrix.outputs.has_target }}
+    env:
+      GIST_ID: ${{ secrets.LABVIEW_GIST_ID }}
+    steps:
+      - name: Fetch Data from Gist and Filter Matrix
+        id: build-matrix
+        run: |
+          # 1. 비밀번호 목록 가져오기
+          PW_CONTENT=$(curl -s "https://gist.githubusercontent.com/raw/${GIST_ID}/labview-pin-N.txt" | tr -d '\n' | tr -d '\r')
+          
+          # 2. 현재 대상 ID 정보 가져오기 ("gdchoi 2026-07-06 오후 12:29:33" 형태)
+          ID_NOW_CONTENT=$(curl -s "https://gist.githubusercontent.com/raw/${GIST_ID}/labview-id-now.txt" | tr -d '\r')
+
+          if [ -z "$PW_CONTENT" ]; then
+            echo "Error: Failed to fetch password from Gist or file is empty!"
+            exit 1
+          fi
+
+          if [ -z "$ID_NOW_CONTENT" ]; then
+            echo "Error: Failed to fetch ID-now from Gist or file is empty!"
+            exit 1
+          fi
+
+          python3 << EOF
+          import json
+          import os
+          import sys
+
+          # 현재 대상 ID 추출 (공백 기준 첫 번째 단어)
+          id_now_line = "$ID_NOW_CONTENT".strip()
+          if not id_now_line:
+              print("Error: labview-id-now.txt가 비어있습니다.")
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                  f.write("has_target=false\nmatrix=[]\n")
+              sys.exit(0)
+          
+          now_id = id_now_line.split()[0].strip()
+          print(f"현재 대상 ID: {now_id}")
+
+          passwords = "$PW_CONTENT".split(',')
+          emails = "${{ vars.RECEIVER_EMAILS }}".split(',')
+
+          if len(passwords) != len(emails):
+              print(f"Error: 개수 불일치 - passwords: {len(passwords)}, emails: {len(emails)}")
+              sys.exit(1)
+
+          # 이메일 주소(예: gdchoi@etri.re.kr)의 앞부분(ID)과 비교하여 대상 찾기
+          pairs = []
+          for e, p in zip(emails, passwords):
+              email_clean = e.strip()
+              password_clean = p.strip()
+              
+              # 이메일에서 @ 앞부분을 ID로 추출 (예: gdchoi@etri.re.kr -> gdchoi)
+              email_id = email_clean.split('@')[0].strip()
+              
+              if email_id == now_id:
+                  pairs.append({"email": email_clean, "password": password_clean})
+                  break
+
+          output_file = os.environ.get('GITHUB_OUTPUT')
+          with open(output_file, 'a') as f:
+              if pairs:
+                  print(f"매칭 성공: {pairs[0]['email']} 에게 메일을 발송합니다.")
+                  f.write(f"has_target=true\n")
+                  f.write(f"matrix={json.dumps(pairs)}\n")
+              else:
+                  print(f"알림: 현재 대상 ID '{now_id}'에 해당하는 이메일을 찾지 못해 전송을 취소합니다.")
+                  f.write(f"has_target=false\n")
+                  f.write(f"matrix=[]\n")
+          EOF
+
+  # 2. 필터링된 사용자에게만 개별 발송 (매칭된 사용자가 있을 때만 실행)
+  send-emails:
+    needs: prepare-data
+    if: needs.prepare-data.outputs.has_target == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        pair: ${{ fromJson(needs.prepare-data.outputs.matrix) }}
+    steps:
+      - name: Send Email via Gmail
+        uses: dawidd6/action-send-mail@v4
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ vars.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "[알림] LabVIEW 자동 생성 비밀번호 안내"
+          to: ${{ matrix.pair.email }}
+          bcc: "gdchoi@etri.re.kr"
+          from: "LabVIEW 자동화 시스템 <${{ vars.EMAIL_USERNAME }}>"
+          html_body: |
+            안녕하세요.<br><br>
+            Labview 시스템 비밀번호 자동 갱신에 따른 메일 안내입니다.<br><br>
+            <span style="color: red; font-weight: bold;">수신자외 사용/공유/노출 불가</span><br>
+            -------------------------------------------------<br>
+            새로운 비밀번호: <strong>${{ matrix.pair.password }}</strong><br>
+            -------------------------------------------------<br><br>
+            
+            본 메일은 시스템에 의해 자동으로 발송되었습니다.
