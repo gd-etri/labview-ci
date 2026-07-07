@@ -148,7 +148,7 @@ jobs:
 
     # 🌟 3. 메일 발송 워크플로우(send-email-gist.yml)에 원격 실행 신호 전송
     - name: Trigger Email Workflow
-      if: steps.holiday-check.outputs.is_holiday == 'false'
+      # if: steps.holiday-check.outputs.is_holiday == 'false'
       env:
         # 내 저장소 이름과 소유자명을 자동으로 가져옵니다.
         REPO_OWNER: ${{ github.repository_owner }}
