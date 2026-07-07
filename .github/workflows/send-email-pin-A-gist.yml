@@ -1,4 +1,4 @@
-name: Send Password Email via Gmail N (gist)
+name: Send PIN Email via Gmail A (gist)
 
 on:
   repository_dispatch:
