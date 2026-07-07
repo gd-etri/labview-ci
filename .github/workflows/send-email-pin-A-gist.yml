@@ -38,6 +38,7 @@ jobs:
           import json
           import os
           import sys
+          import re
 
           # 현재 대상 ID 추출 (공백 기준 첫 번째 단어)
           id_now_line = "$ID_NOW_CONTENT".strip()
@@ -57,16 +58,21 @@ jobs:
               print(f"Error: 개수 불일치 - passwords: {len(passwords)}, emails: {len(emails)}")
               sys.exit(1)
 
-          # 이메일 주소(예: gdchoi@etri.re.kr)의 앞부분(ID)과 비교하여 대상 찾기
           pairs = []
           for e, p in zip(emails, passwords):
               email_clean = e.strip()
               password_clean = p.strip()
               
-              # 이메일에서 @ 앞부분을 ID로 추출 (예: gdchoi@etri.re.kr -> gdchoi)
-              email_id = email_clean.split('@')[0].strip()
+              # 1. "최규동<gdchoi@etri.re.kr>" 형태에서 괄호 안의 이메일 주소만 추출
+              # 만약 괄호가 없으면 원래 문자열을 그대로 사용
+              email_match = re.search(r'<(.*?)>', email_clean)
+              pure_email = email_match.group(1).strip() if email_match else email_clean
+              
+              # 2. 이메일 주소에서 @ 앞부분을 ID로 추출 (예: gdchoi@etri.re.kr -> gdchoi)
+              email_id = pure_email.split('@')[0].strip()
               
               if email_id == now_id:
+                  # 실제 메일 발송용(to:) 정보는 원래 형태(이름 포함)를 유지하거나 순수 이메일만 보낼 수 있도록 pairs에 저장
                   pairs.append({"email": email_clean, "password": password_clean})
                   break
 
