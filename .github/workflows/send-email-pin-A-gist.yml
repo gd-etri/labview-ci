@@ -7,6 +7,33 @@ on:
 
 jobs:
   # 1. Gist에서 현재 대상 ID, 비밀번호, 이메일을 가져와서 매칭 및 필터링 데이터 생성
+  # prepare-data:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     matrix: ${{ steps.build-matrix.outputs.matrix }}
+  #     has_target: ${{ steps.build-matrix.outputs.has_target }}
+  #   env:
+  #     GIST_ID: ${{ secrets.LABVIEW_GIST_ID }}
+  #   steps:
+  #     - name: Fetch Data from Gist and Filter Matrix
+  #       id: build-matrix
+  #       run: |
+  #         # 1. 비밀번호 목록 가져오기
+  #         PW_CONTENT=$(curl -s "https://gist.githubusercontent.com/raw/${GIST_ID}/labview-pin-N.txt" | tr -d '\n' | tr -d '\r')
+          
+  #         # 2. 현재 대상 ID 정보 가져오기 ("gdchoi 2026-07-06 오후 12:29:33" 형태)
+  #         ID_NOW_CONTENT=$(curl -s "https://gist.githubusercontent.com/raw/${GIST_ID}/labview-login-now.txt" | tr -d '\r')
+
+  #         if [ -z "$PW_CONTENT" ]; then
+  #           echo "Error: Failed to fetch password from Gist or file is empty!"
+  #           exit 1
+  #         fi
+
+  #         if [ -z "$ID_NOW_CONTENT" ]; then
+  #           echo "Error: Failed to fetch ID-now from Gist or file is empty!"
+  #           exit 1
+  #         fi
+  
   prepare-data:
     runs-on: ubuntu-latest
     outputs:
@@ -14,25 +41,39 @@ jobs:
       has_target: ${{ steps.build-matrix.outputs.has_target }}
     env:
       GIST_ID: ${{ secrets.LABVIEW_GIST_ID }}
+      GH_TOKEN: ${{ secrets.ACTIONS_PUSH_TOKEN_GD }}   # <-- 추가 필요
     steps:
       - name: Fetch Data from Gist and Filter Matrix
         id: build-matrix
         run: |
-          # 1. 비밀번호 목록 가져오기
-          PW_CONTENT=$(curl -s "https://gist.githubusercontent.com/raw/${GIST_ID}/labview-pin-N.txt" | tr -d '\n' | tr -d '\r')
+          # API로 gist 전체를 한번에 가져옴 (캐싱 없음, 항상 최신)
+          GIST_JSON=$(curl -s \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/gists/${GIST_ID}")
+
+          PW_CONTENT=$(echo "$GIST_JSON" | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          print(d['files']['labview-pin-N.txt']['content'], end='')
+          " | tr -d '\n' | tr -d '\r')
           
-          # 2. 현재 대상 ID 정보 가져오기 ("gdchoi 2026-07-06 오후 12:29:33" 형태)
-          ID_NOW_CONTENT=$(curl -s "https://gist.githubusercontent.com/raw/${GIST_ID}/labview-login-now.txt" | tr -d '\r')
+          ID_NOW_CONTENT=$(echo "$GIST_JSON" | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          print(d['files']['labview-login-now.txt']['content'], end='')
+          " | tr -d '\r')
 
           if [ -z "$PW_CONTENT" ]; then
             echo "Error: Failed to fetch password from Gist or file is empty!"
             exit 1
           fi
-
           if [ -z "$ID_NOW_CONTENT" ]; then
             echo "Error: Failed to fetch ID-now from Gist or file is empty!"
             exit 1
           fi
+
+          
 
           python3 << EOF
           import json
