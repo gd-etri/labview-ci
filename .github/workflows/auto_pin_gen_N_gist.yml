@@ -162,18 +162,18 @@ jobs:
           -d '{"event_type": "trigger-email-pin-A"}'
         echo "🚀 메일 발송 워크플로우로 실행 신호를 보냈습니다!"
     
-    # 🌟 4. 메일 발송 워크플로우(send-email-to-admin-gist.yml)에 원격 실행 신호 전송
-    - name: Trigger Email to ADMIN Workflow
-      # if: steps.holiday-check.outputs.is_holiday == 'false'
-      env:
-        # 내 저장소 이름과 소유자명을 자동으로 가져옵니다.
-        REPO_OWNER: ${{ github.repository_owner }}
-        REPO_NAME: ${{ github.event.repository.name }}
-        GH_TOKEN: ${{ secrets.ACTIONS_PUSH_TOKEN_GD }}
-      run: |
-        curl -X POST \
-          -H "Authorization: Bearer $GH_TOKEN" \
-          -H "Accept: application/vnd.github+json" \
-          https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/dispatches \
-          -d '{"event_type": "trigger-email-to-admin-PIN-N"}'
-        echo "🚀 메일 발송 [admin] 워크플로우로 실행 신호를 보냈습니다!"
+    # # 🌟 4. 메일 발송 워크플로우(send-email-to-admin-gist.yml)에 원격 실행 신호 전송
+    # - name: Trigger Email to ADMIN Workflow
+    #   # if: steps.holiday-check.outputs.is_holiday == 'false'
+    #   env:
+    #     # 내 저장소 이름과 소유자명을 자동으로 가져옵니다.
+    #     REPO_OWNER: ${{ github.repository_owner }}
+    #     REPO_NAME: ${{ github.event.repository.name }}
+    #     GH_TOKEN: ${{ secrets.ACTIONS_PUSH_TOKEN_GD }}
+    #   run: |
+    #     curl -X POST \
+    #       -H "Authorization: Bearer $GH_TOKEN" \
+    #       -H "Accept: application/vnd.github+json" \
+    #       https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/dispatches \
+    #       -d '{"event_type": "trigger-email-to-admin-PIN-N"}'
+    #     echo "🚀 메일 발송 [admin] 워크플로우로 실행 신호를 보냈습니다!"
