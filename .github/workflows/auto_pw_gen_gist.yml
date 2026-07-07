@@ -64,14 +64,17 @@ jobs:
         import os
 
         # 🔑 1. 랜덤 비밀번호 생성 로직
-        chars = string.ascii_letters + string.digits + '!@#$%^&*()'
-        length = random.randint(6, 10)
+        # chars = string.ascii_letters + string.digits + '!@#$%^&*()'
+        chars = string.digits
+        # length = random.randint(6, 10)
+        length = random.randint(5, 6)
         password = [
-            random.choice(string.ascii_letters),
+            # random.choice(string.ascii_letters),
             random.choice(string.digits),
-            random.choice('!@#$%^&*()')
+            # random.choice('!@#$%^&*()')
         ]
-        password += [random.choice(chars) for _ in range(length - 3)]
+        # password += [random.choice(chars) for _ in range(length - 3)]
+        password += [random.choice(chars) for _ in range(length - 1)]
         random.shuffle(password)
         final_password = ''.join(password)
 
