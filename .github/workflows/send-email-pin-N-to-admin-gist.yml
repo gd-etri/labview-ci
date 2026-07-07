@@ -1,0 +1,104 @@
+name: Send Password Email via Gmail to ADMIN N (gist)
+on:
+  repository_dispatch:
+    types: [trigger-email-to-admin-PIN-N]
+  workflow_dispatch:
+
+jobs:
+  read-and-send:
+    runs-on: ubuntu-latest
+    steps:
+    # 1. GitHub Gist에서 최신 비밀번호 다운로드 받아 환경 변수에 저장
+    - name: Fetch Password from GitHub Gist
+      id: get_pw
+      env:
+        GIST_ID: ${{ secrets.LABVIEW_GIST_ID }}
+      run: |
+        PW_CONTENT=$(curl -s "https://gist.githubusercontent.com/raw/${GIST_ID}/labview-pin-N.txt" | tr -d '\n' | tr -d '\r')
+
+        if [ -z "$PW_CONTENT" ]; then
+          echo "Error: Failed to fetch password from Gist or file is empty!"
+          exit 1
+        fi
+
+        echo "LABVIEW_PW=$PW_CONTENT" >> $GITHUB_ENV
+        echo "Successfully fetched password from Gist."
+
+    # 2. 비밀번호와 이메일을 매칭해서 HTML 테이블 생성
+    - name: Build HTML Table
+      id: build_table
+      env:
+        RECEIVER_EMAILS: ${{ vars.RECEIVER_EMAILS }}
+      run: |
+        python3 << 'EOF'
+        import os
+        import html
+        import re
+    
+        passwords = os.environ['LABVIEW_PW'].split(',')
+        emails = os.environ['RECEIVER_EMAILS'].split(',')
+    
+        passwords = [p.strip() for p in passwords]
+        emails = [e.strip() for e in emails]
+    
+        if len(passwords) != len(emails):
+            print(f"Error: 개수 불일치 - passwords: {len(passwords)}, emails: {len(emails)}")
+            exit(1)
+    
+        rows = ""
+        for email, pw in zip(emails, passwords):
+            # "이름<주소>" 형식을 이름/주소로 분리
+            match = re.match(r'^(.*)<(.+)>$', email)
+            if match:
+                name = match.group(1).strip()
+                address = match.group(2).strip()
+            else:
+                name = ""
+                address = email
+    
+            name = html.escape(name)
+            address = html.escape(address)
+    
+            rows += f'''<tr>
+              <td style="padding:8px; border:1px solid #ddd;">{name}</td>
+              <td style="padding:8px; border:1px solid #ddd;">{address}</td>
+              <td style="padding:8px; border:1px solid #ddd;"><strong>{pw}</strong></td>
+            </tr>\n'''
+    
+        table_html = f'''<table style="border-collapse:collapse; width:100%; max-width:600px;">
+          <tr style="background-color:#f2f2f2;">
+            <th style="padding:8px; border:1px solid #ddd; text-align:left;">수신자</th>
+            <th style="padding:8px; border:1px solid #ddd; text-align:left;">이메일</th>
+            <th style="padding:8px; border:1px solid #ddd; text-align:left;">비밀번호</th>
+          </tr>
+          {rows}
+        </table>'''
+    
+        output_file = os.environ.get('GITHUB_OUTPUT')
+        with open(output_file, 'a') as f:
+            f.write("table<<EOF_TABLE\n")
+            f.write(table_html + "\n")
+            f.write("EOF_TABLE\n")
+        EOF
+
+    # 3. 구글 지메일 SMTP를 통해 이메일 발송
+    - name: Send Email via Gmail
+      uses: dawidd6/action-send-mail@v4
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ vars.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: "[알림] LabVIEW 자동 생성 비밀번호 안내"
+        to: "gdchoi@etri.re.kr"
+        bcc: ${{ vars.ADMIN_EMAIL }}
+        from: "LabVIEW 자동화 시스템 <${{ vars.EMAIL_USERNAME }}>"
+        html_body: |
+          <span style="color: red; font-weight: bold;">관리자[admin]에게 전송되는 메일 입니다.</span><br><br>
+          안녕하세요.<br><br>
+          Labview 시스템 비밀번호 자동 갱신에 따른 메일 안내입니다.<br><br>
+          -------------------------------------------------<br>
+          ${{ steps.build_table.outputs.table }}
+          -------------------------------------------------<br>
+          <span style="color: red;">수신자외 사용/공유 불가</span><br><br>
+          본 메일은 시스템에 의해 자동으로 발송되었습니다.
