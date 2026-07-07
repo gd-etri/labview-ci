@@ -122,7 +122,7 @@ jobs:
 
         receiver_emails = '${{ vars.RECEIVER_EMAILS }}'
         
-        # Gist 내부의 'labview-pw-N.txt' 파일 내용 수정 데이터 구성 / 두 파일을 동시에 업데이트
+        # Gist 내부의 'labview-pin-N.txt' 파일 내용 수정 데이터 구성 / 두 파일을 동시에 업데이트
         data = {
             'files': {
                 'labview-pin-N.txt': {
