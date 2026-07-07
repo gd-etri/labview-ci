@@ -22,7 +22,7 @@ jobs:
           PW_CONTENT=$(curl -s "https://gist.githubusercontent.com/raw/${GIST_ID}/labview-pin-N.txt" | tr -d '\n' | tr -d '\r')
           
           # 2. 현재 대상 ID 정보 가져오기 ("gdchoi 2026-07-06 오후 12:29:33" 형태)
-          ID_NOW_CONTENT=$(curl -s "https://gist.githubusercontent.com/raw/${GIST_ID}/labview-id-now.txt" | tr -d '\r')
+          ID_NOW_CONTENT=$(curl -s "https://gist.githubusercontent.com/raw/${GIST_ID}/labview-login-now.txt" | tr -d '\r')
 
           if [ -z "$PW_CONTENT" ]; then
             echo "Error: Failed to fetch password from Gist or file is empty!"
@@ -43,7 +43,7 @@ jobs:
           # 현재 대상 ID 추출 (공백 기준 첫 번째 단어)
           id_now_line = "$ID_NOW_CONTENT".strip()
           if not id_now_line:
-              print("Error: labview-id-now.txt가 비어있습니다.")
+              print("Error: labview-login-now.txt가 비어있습니다.")
               with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                   f.write("has_target=false\nmatrix=[]\n")
               sys.exit(0)
