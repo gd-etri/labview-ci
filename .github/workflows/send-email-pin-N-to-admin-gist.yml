@@ -90,8 +90,8 @@ jobs:
         username: ${{ vars.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
         subject: "[알림] LabVIEW 자동 생성 비밀번호 안내"
-        to: "gdchoi@etri.re.kr"
-        bcc: ${{ vars.ADMIN_EMAIL }}
+        to: ${{ vars.ADMIN_EMAIL }}
+        # bcc: ${{ vars.ADMIN_EMAIL }}
         from: "LabVIEW 자동화 시스템 <${{ vars.EMAIL_USERNAME }}>"
         html_body: |
           <span style="color: red; font-weight: bold;">관리자[admin]에게 전송되는 메일 입니다.</span><br><br>
