@@ -1,4 +1,4 @@
-name: Send Password Email via Gmail to ADMIN N (gist)
+name: Send PIN Email via Gmail to ADMIN N (gist)
 on:
   repository_dispatch:
     types: [trigger-email-to-admin-PIN-N]
