@@ -13,7 +13,8 @@ on:
 
 jobs:
   update-password:
-    runs-on: ubuntu-latest
+    # runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
 
     - name: Check Message from LabVIEW
