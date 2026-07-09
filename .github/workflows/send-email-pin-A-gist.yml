@@ -35,7 +35,8 @@ jobs:
   #         fi
   
   prepare-data:
-    runs-on: ubuntu-latest
+    # runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       matrix: ${{ steps.build-matrix.outputs.matrix }}
       has_target: ${{ steps.build-matrix.outputs.has_target }}
