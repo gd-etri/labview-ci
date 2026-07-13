@@ -1,0 +1,25 @@
+PW: 숫자,영문,특수기호 조합
+PIN-CODE: 숫자
+
+- push trigger
+.github/workflows/auto_pw_gen.yml : pw를 자동 생성해서 labview-pw.txt에 push
+.github/workflows/Send-email.yml : labview-pw.txt가 자동 push되면 자동 실행 됨.
+
+- cron-job
+.github/workflows/auto_pw_gen_gist.yml (PIN-CODE 생성)
+.github/workflows/auto_pw_gen_gist-org.yml (PW 생성)
+: pw를 자동 생성후 Gist 내부의 'labview-pw.txt' 파일 내용 수정
+: 공유일, 주말을 제외하고 send-email-gist.yml trigger
+: pw가 자동 생성될 때마다 send-email-to-admin-git.yml trigger
+.github/workflows/send-email-gist.yml : 사용자들에게 메일 전송
+.github/workflows/send-email-to-admin-gist.yml : 관리자에게 메일 전송
+
+- cron-job ? (만들기만 하고 사용 안함)
+.github/workflows/auto_pw_gen_N_gist.yml : N 사용자에 대해서 N개의 비밀번호 생성
+.github/workflows/send-email-N-gist.yml : 각 사용자에게 매칭되는 pw를 각각 발송
+.github/workflows/send-email-N-to-admin-gist.yml : 관리자에게 (사용자 | PW) 전체 발송
+
+- labview trigger
+.github/workflows/auto_pin_gen_N_gist.yml : N 사용자에 대해서 N개의 PIN-CODE 생성
+.github/workflows/send-email-pin-A-gist.yml : 요청한 사용자에 대해서 매칭되는 PIN-CODE 발송
+.github/workflows/send-email-pin-N-to-admin-gist.yml : 관리자에게 (사용자 | PIN-CODE) 전체 발송
