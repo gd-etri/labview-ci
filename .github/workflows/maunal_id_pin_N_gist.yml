@@ -1,0 +1,109 @@
+name: Manual Generate and Update ID-N, PIN-N (gist)
+
+on:
+  # schedule이 제대로 동작하지 않아 cron-job으로 변경
+  # schedule:
+    # KST 월~금 아침 7시 (UTC 일~목 밤 22시)
+    # - cron: '37 20 * * 0-4' # not working
+    # - cron: '37 08 * * 1-5'
+    # - cron: '37 08 * * *' # working w/ 7 hours dealy
+  repository_dispatch:
+    # types: [labview-gen-PIN-trigger]
+  workflow_dispatch: # 수동 실행 버튼
+
+jobs:
+  update-password:
+    # runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    steps:
+  
+    # 2. Python을 사용하여 랜덤 비밀번호 생성 및 Gist에 바로 업데이트
+    - name: Generate Password and Update GitHub Gist
+      # if: steps.holiday-check.outputs.is_holiday == 'false'
+      env:
+        # GitHub Actions 환경 변수로 비밀 값들 세팅
+        GH_TOKEN: ${{ secrets.ACTIONS_PUSH_TOKEN_GD }}
+        GIST_ID: ${{ secrets.LABVIEW_GIST_ID }}
+        # RECEIVER_EMAILS: ${{ vars.RECEIVER_EMAILS }}
+      shell: bash
+      run: |
+        python3 -c "
+        import random
+        import string
+        import urllib.request
+        import json
+        import os
+        
+        # 🔑 1. 랜덤 비밀번호 생성 로직 (RECEIVER_EMAILS 수 만큼)
+        # chars = string.ascii_letters + string.digits + '!@#$%^&*()'
+        chars = string.digits # only numbers
+        # # length = random.randint(6, 10)
+        # # final_password=''
+        # # for i in range(len(vars.RECEIVER_EMAILS)):
+        # #     password = [
+        # #         random.choice(string.ascii_letters),
+        # #         random.choice(string.digits),
+        # #         random.choice('!@#$%^&*()')
+        # #     ]
+        # #     password += [random.choice(chars) for _ in range(length - 3)]
+        # #     random.shuffle(password)
+        # #     final_password += ''.join(password)
+        # #     if i<len(vars.RECEIVER_EMAILS)-1: final_password +=', '
+
+        # clude 추천
+        # receiver_emails = os.environ.get('RECEIVER_EMAILS', '').split(',')
+        receiver_emails = '${{ vars.RECEIVER_EMAILS }}'.split(',') # env:에 추가 없이 Python에서 직접
+        passwords = []
+        for _ in receiver_emails:
+            # length = random.randint(6, 10)  # 매 비밀번호마다 다른 길이
+            length = random.randint(5, 6)  # 매 비밀번호마다 다른 길이 6, 7 자리
+            password = [
+                # random.choice(string.ascii_letters),
+                random.choice(string.digits),
+                # random.choice('!@#$%^&*()')
+            ]
+            # password += [random.choice(chars) for _ in range(length - 3)]
+            password += [random.choice(chars) for _ in range(length - 1)] # 6-1, 7-1 자리
+            random.shuffle(password)
+            passwords.append(''.join(password))
+        final_password = ', '.join(passwords)
+
+        
+        # 🌐 2. GitHub API를 통해 Gist 패치(업데이트) 요청
+        gist_id = os.environ['GIST_ID']
+        token = os.environ['GH_TOKEN']
+
+        # print(f'사용된 Gist ID: {gist_id}')  # 임시 추가
+        # print(f'Gist ID 앞4자리: {gist_id[:8]}')  # secrets 마스킹 우회
+        
+        url = f'https://api.github.com/gists/{gist_id}'
+        headers = {
+            'Authorization': f'Bearer {token}',
+            'Accept': 'application/vnd.github+json'
+        }
+
+        receiver_emails = '${{ vars.RECEIVER_EMAILS }}'
+        
+        # Gist 내부의 'labview-pin-N.txt' 파일 내용 수정 데이터 구성 / 두 파일을 동시에 업데이트
+        data = {
+            'files': {
+                'labview-pin-N.txt': {
+                    'content': final_password
+                },
+                'labview-id-N.txt': {
+                    'content': receiver_emails
+                }
+            }
+        }
+        
+        req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers, method='PATCH')
+        try:
+            with urllib.request.urlopen(req) as response:
+                if response.status == 200:
+                    print('🎉 Gist 비밀번호가 성공적으로 업데이트되었습니다!')
+                    print(f'생성된 비밀번호: {final_password}')
+                    print(f'수신자 이메일: {receiver_emails}')
+        except Exception as e:
+            print(f'🚨 Gist 업데이트 실패: {e}')
+            exit(1)
+        "
