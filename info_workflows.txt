@@ -23,3 +23,6 @@ PIN-CODE: 숫자
 .github/workflows/auto_pin_gen_N_gist.yml : N 사용자에 대해서 N개의 PIN-CODE 생성
 .github/workflows/send-email-pin-A-gist.yml : 요청한 사용자에 대해서 매칭되는 PIN-CODE 발송
 .github/workflows/send-email-pin-N-to-admin-gist.yml : 관리자에게 (사용자 | PIN-CODE) 전체 발송
+
+- Manual
+.github/workflows/maunal_id_pin_N_gist.yml : 수동으로 variables의 수신자 만큼 PIN-CODE를 생성하고, gist에 pin-N, id-N을 업데이트
