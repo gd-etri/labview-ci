@@ -151,11 +151,11 @@ jobs:
           bcc: ${{ vars.ADMIN_EMAIL }}
           from: "LabVIEW 자동화 시스템 <${{ vars.EMAIL_USERNAME }}>"
           html_body: |
-            안녕하세요.<br><br>
-            Labview 시스템 비밀번호 자동 갱신에 따른 메일 안내입니다.<br><br>
+            
+            자동 측정 시스템 PIN-CODE 안내 메일입니다.<br><br>
             <span style="color: red; font-weight: bold;">수신자외 사용/공유/노출 불가</span><br>
             -------------------------------------------------<br>
-            새로운 비밀번호: <strong>${{ matrix.pair.password }}</strong><br>
+            새로운 PIN-CODE: <strong>${{ matrix.pair.password }}</strong><br>
             -------------------------------------------------<br><br>
             
             본 메일은 시스템에 의해 자동으로 발송되었습니다.
