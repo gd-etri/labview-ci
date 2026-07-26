@@ -1,7 +1,5 @@
-gdchoi AutoMeasure 2026-07-22 오전 6:52:00
-hskim83 AutoMeasure 2026-07-22 오전 10:40:46
-hskim83 AutoAlign 2026-07-23 오후 2:40:09
-hskim83 AutoAlign 2026-07-23 오후 3:17:30
-hskim83 AutoMeasure 2026-07-24 오후 2:14:45
-hskim83 AutoMeasure 2026-07-24 오후 4:04:12
-hskim83 AutoMeasure 2026-07-24 오후 4:57:52
+hskim83 AutoAlign END  2026-07-23 오후 3:15:49
+hskim83 AutoAlign END  2026-07-23 오후 5:34:54
+ AutoAlign END  2026-07-24 오후 3:40:35
+ AutoAlign END  2026-07-24 오후 4:43:39
+ AutoAlign END  2026-07-24 오후 5:41:14
