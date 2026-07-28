@@ -1,1 +1,13 @@
+name: Auto Measure Shutdown Toggle
 
+on:
+  # schedule:
+  #   # 💡 KST 월~금 아침 7시는 UTC 기준 일~목 밤 22시 (0 22 * * 0-4)
+  #   - cron: '13 23 * * 0-4'
+  # push:
+  #   # 💡 중요: 봇이 파일을 푸시했을 때 이 워크플로우가 다시 실행되는 무한 루프를 원천 차단합니다.
+  #   paths-ignore:
+  #     - 'labview-AM-down.txt'
+  workflow_dispatch: # 수동 실행 버튼
+
+jobs:
