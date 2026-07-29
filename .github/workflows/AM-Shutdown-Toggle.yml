@@ -9,11 +9,39 @@ on:
   #   paths-ignore:
   #     - 'labview-AM-down.txt'
   workflow_dispatch: # 수동 실행 버튼
+    # inputs:
+    #   gist_id:
+    #     description: "Gist ID"
+    #     required: false
+    #     default: "83a4f966a97c7005c8eac62882c70c91"
+    #   filename:
+    #     description: "Gist 안의 파일명"
+    #     required: false
+    #     default: "labview-AM-down.txt"
+    #   max_delay_minutes:
+    #     description: "랜덤 딜레이 최대값 (분). 0이면 딜레이 없음"
+    #     required: false
+    #     default: "10"
 
 jobs:
   toggle:
     runs-on: ubuntu-latest
     steps:
+      - name: Random delay (minutes)
+        env:
+          # MAX_DELAY_MINUTES: ${{ github.event.inputs.max_delay_minutes || '10' }}
+          MAX_DELAY_MINUTES: ${{ '3' }}
+        run: |
+          if [ "$MAX_DELAY_MINUTES" -le 0 ] 2>/dev/null; then
+            echo "딜레이 없음 (max_delay_minutes=0)"
+            exit 0
+          fi
+          DELAY_MIN=$(( RANDOM % (MAX_DELAY_MINUTES + 1) ))
+          DELAY_SEC=$(( DELAY_MIN * 60 ))
+          echo "랜덤 딜레이: ${DELAY_MIN}분 (${DELAY_SEC}초) 대기 중..."
+          sleep "$DELAY_SEC"
+          echo "대기 완료"
+          
       - name: Toggle SHUTDOWN value in gist
         env:
           # Repo Settings > Secrets and variables > Actions 에
