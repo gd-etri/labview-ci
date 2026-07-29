@@ -32,7 +32,7 @@ on:
 jobs:
   toggle:
     runs-on: ubuntu-latest
-    ## !! concurrency.group을 gist_id+filename 조합으로 만들어서, 같은 gist/파일을 건드리는 실행들끼리만 순서를 관리합니다 (다른 gist를 대상으로 하는 실행과는 서로 안 막음)
+    ## !! concurrency.group을 예) gist_id+filename 조합, 임으 명칭으로 만들어서, 같은 gist/파일을 건드리는 실행들끼리만 순서를 관리합니다 (다른 gist를 대상으로 하는 실행과는 서로 안 막음)
     ## !! cancel-in-progress: false → 진행 중인 실행(딜레이 중이든 뭐든)을 취소하지 않고, 새 실행은 큐에서 대기했다가 이전 실행이 완전히 끝난 뒤 시작
     ## !! 만약 cancel-in-progress: true로 설정하면 반대로 새 실행이 들어올 때 이전 실행을 강제로 죽이는 방식인데, 이 경우엔 대기 중이던 딜레이가 통째로 날아가버리니 지금 상황엔 안 맞습니다. false(큐잉)가 맞는 선택이에요.
 
