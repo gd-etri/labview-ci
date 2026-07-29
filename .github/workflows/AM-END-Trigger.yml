@@ -1,8 +1,8 @@
 name: Auto Measure END Trigger
 
 on:
-  repository_dispatch:
-    types: [labview-end-trigger]
+  # repository_dispatch:
+  #   types: [labview-end-trigger]
   workflow_dispatch: # 수동 실행 버튼
 
 jobs:
