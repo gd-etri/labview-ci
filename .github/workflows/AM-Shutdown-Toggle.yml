@@ -104,7 +104,8 @@ jobs:
               f.write(f"new_value={new_value}\n")
           EOF
  
-      - name: Random delay (minutes, direction-aware)
+      # - name: Random delay (minutes, direction-aware)
+      - name: Random delay (seconds, direction-aware)
         env:
           NEW_VALUE: ${{ steps.read.outputs.new_value }}
           # MAX_DELAY_TO_SHUTDOWN: ${{ github.event.inputs.max_delay_to_shutdown || '10' }}
@@ -115,10 +116,12 @@ jobs:
           # 토글 방향(new_value)에 따라 서로 다른 딜레이 범위 사용
           if [ "$NEW_VALUE" = "SHUTDOWN" ]; then
             MAX_DELAY_MINUTES="$MAX_DELAY_TO_SHUTDOWN"
-            echo "방향: SHUTDOWNFALSE -> SHUTDOWN (최대 ${MAX_DELAY_MINUTES}분 딜레이)"
+            # echo "방향: SHUTDOWNFALSE -> SHUTDOWN (최대 ${MAX_DELAY_MINUTES}분 딜레이)"
+            echo "방향: SHUTDOWNFALSE -> SHUTDOWN (최대 ${MAX_DELAY_MINUTES}초 딜레이)"
           else
             MAX_DELAY_MINUTES="$MAX_DELAY_TO_SHUTDOWNFALSE"
-            echo "방향: SHUTDOWN -> SHUTDOWNFALSE (최대 ${MAX_DELAY_MINUTES}분 딜레이)"
+            # echo "방향: SHUTDOWN -> SHUTDOWNFALSE (최대 ${MAX_DELAY_MINUTES}분 딜레이)"
+            echo "방향: SHUTDOWN -> SHUTDOWNFALSE (최대 ${MAX_DELAY_MINUTES}초 딜레이)"
           fi
  
           if [ "$MAX_DELAY_MINUTES" -le 0 ] 2>/dev/null; then
