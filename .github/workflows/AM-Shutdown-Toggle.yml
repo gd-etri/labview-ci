@@ -18,41 +18,27 @@ on:
     #     description: "Gist 안의 파일명"
     #     required: false
     #     default: "labview-AM-down.txt"
-    #   max_delay_minutes:
-    #     description: "랜덤 딜레이 최대값 (분). 0이면 딜레이 없음"
+    #   max_delay_to_shutdown:
+    #     description: "SHUTDOWNFALSE -> SHUTDOWN 될 때 랜덤 딜레이 최대값 (분)"
     #     required: false
     #     default: "10"
+    #   max_delay_to_shutdownfalse:
+    #     description: "SHUTDOWN -> SHUTDOWNFALSE 될 때 랜덤 딜레이 최대값 (분)"
+    #     required: false
+    #     default: "5"
+  # schedule:
+  #   - cron: "0 * * * *"   # 매 시 정각 (UTC 기준, KST -9h)
 
 jobs:
   toggle:
     runs-on: ubuntu-latest
     steps:
-      - name: Random delay (minutes)
+      - name: Read current value from gist
+        id: read
         env:
-          # MAX_DELAY_MINUTES: ${{ github.event.inputs.max_delay_minutes || '10' }}
-          # MAX_DELAY_MINUTES: ${{ '3' }}
-          MAX_DELAY_SEC: ${{ '180' }}
-        run: |
-          if [ "$MAX_DELAY_MINUTES" -le 0 ] 2>/dev/null; then
-            echo "딜레이 없음 (max_delay_minutes=0)"
-            exit 0
-          fi
-          # DELAY_MIN=$(( RANDOM % (MAX_DELAY_MINUTES + 1) ))
-          # DELAY_SEC=$(( DELAY_MIN * 60 ))
-          DELAY_SEC=$(( RANDOM % (MAX_DELAY_SEC + 1) ))
-          echo "랜덤 딜레이: ${DELAY_MIN}분 (${DELAY_SEC}초) 대기 중..."
-          sleep "$DELAY_SEC"
-          echo "대기 완료"
-          
-      - name: Toggle SHUTDOWN value in gist
-        env:
-          # Repo Settings > Secrets and variables > Actions 에
-          # "GIST_PAT" 라는 이름으로 gist 권한이 있는 Personal Access Token 등록 필요
           GITHUB_TOKEN: ${{ secrets.ACTIONS_PUSH_TOKEN_GD }}
           GIST_ID: ${{ secrets.LABVIEW_GIST_ID }}
           FILENAME: ${{ 'labview-AM-down.txt' }}
-          # FILENAME: ${{ 'labview-down.txt' }}
-          
         run: |
           python3 - <<'EOF'
           import json
@@ -60,58 +46,123 @@ jobs:
           import sys
           import urllib.request
           import urllib.error
-
+ 
           token = os.environ["GITHUB_TOKEN"]
           gist_id = os.environ["GIST_ID"]
           filename = os.environ["FILENAME"]
-
+ 
           TOGGLE_MAP = {
               "SHUTDOWNFALSE": "SHUTDOWN",
               "SHUTDOWN": "SHUTDOWNFALSE",
           }
-
+ 
           headers = {
               "Accept": "application/vnd.github+json",
               "Authorization": f"Bearer {token}",
               "X-GitHub-Api-Version": "2022-11-28",
               "User-Agent": "toggle-am-down-workflow",
           }
-
-          def api_request(url, method="GET", body=None):
-              data = json.dumps(body).encode("utf-8") if body is not None else None
-              req = urllib.request.Request(url, data=data, headers=headers, method=method)
-              if body is not None:
-                  req.add_header("Content-Type", "application/json")
-              try:
-                  with urllib.request.urlopen(req) as resp:
-                      return json.loads(resp.read().decode("utf-8"))
-              except urllib.error.HTTPError as e:
-                  print(f"::error::HTTP {e.code}: {e.read().decode('utf-8', errors='replace')}")
-                  sys.exit(1)
-
-          # 1) 현재 값 읽기 (api.github.com 사용, raw URL은 캐시 문제 있음)
-          data = api_request(f"https://api.github.com/gists/{gist_id}")
+ 
+          req = urllib.request.Request(
+              f"https://api.github.com/gists/{gist_id}", headers=headers, method="GET"
+          )
+          try:
+              with urllib.request.urlopen(req) as resp:
+                  data = json.loads(resp.read().decode("utf-8"))
+          except urllib.error.HTTPError as e:
+              print(f"::error::HTTP {e.code}: {e.read().decode('utf-8', errors='replace')}")
+              sys.exit(1)
+ 
           files = data.get("files", {})
           if filename not in files:
               print(f"::error::'{filename}' 파일을 gist에서 찾을 수 없습니다. 사용 가능: {list(files.keys())}")
               sys.exit(1)
-
+ 
           current = files[filename]["content"].strip()
           print(f"현재 값: {current}")
-
+ 
           if current not in TOGGLE_MAP:
               print(f"::error::예상하지 못한 값 '{current}' (SHUTDOWN/SHUTDOWNFALSE 아님)")
               sys.exit(1)
-
+ 
           new_value = TOGGLE_MAP[current]
           print(f"새 값: {new_value}")
-
-          # 2) PATCH로 업데이트
-          api_request(
+ 
+          # 다음 스텝들이 쓸 수 있도록 출력값으로 전달
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"current={current}\n")
+              f.write(f"new_value={new_value}\n")
+          EOF
+ 
+      - name: Random delay (minutes, direction-aware)
+        env:
+          NEW_VALUE: ${{ steps.read.outputs.new_value }}
+          # MAX_DELAY_TO_SHUTDOWN: ${{ github.event.inputs.max_delay_to_shutdown || '10' }}
+          # MAX_DELAY_TO_SHUTDOWNFALSE: ${{ github.event.inputs.max_delay_to_shutdownfalse || '5' }}
+          MAX_DELAY_TO_SHUTDOWN: ${{ '500' }} # minute > second
+          MAX_DELAY_TO_SHUTDOWNFALSE: ${{ '180' }}
+        run: |
+          # 토글 방향(new_value)에 따라 서로 다른 딜레이 범위 사용
+          if [ "$NEW_VALUE" = "SHUTDOWN" ]; then
+            MAX_DELAY_MINUTES="$MAX_DELAY_TO_SHUTDOWN"
+            echo "방향: SHUTDOWNFALSE -> SHUTDOWN (최대 ${MAX_DELAY_MINUTES}분 딜레이)"
+          else
+            MAX_DELAY_MINUTES="$MAX_DELAY_TO_SHUTDOWNFALSE"
+            echo "방향: SHUTDOWN -> SHUTDOWNFALSE (최대 ${MAX_DELAY_MINUTES}분 딜레이)"
+          fi
+ 
+          if [ "$MAX_DELAY_MINUTES" -le 0 ] 2>/dev/null; then
+            echo "딜레이 없음 (max_delay_minutes=0)"
+            exit 0
+          fi
+ 
+          # DELAY_MIN=$(( RANDOM % (MAX_DELAY_MINUTES + 1) ))
+          # DELAY_SEC=$(( DELAY_MIN * 60 ))
+          DELAY_SEC=$(( RANDOM % (MAX_DELAY_MINUTES + 1) ))
+          echo "랜덤 딜레이: ${DELAY_MIN}분 (${DELAY_SEC}초) 대기 중..."
+          sleep "$DELAY_SEC"
+          echo "대기 완료"
+ 
+      - name: Update gist with new value
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIST_PAT }}
+          GIST_ID: ${{ github.event.inputs.gist_id || '83a4f966a97c7005c8eac62882c70c91' }}
+          FILENAME: ${{ github.event.inputs.filename || 'labview-AM-down.txt' }}
+          NEW_VALUE: ${{ steps.read.outputs.new_value }}
+        run: |
+          python3 - <<'EOF'
+          import json
+          import os
+          import sys
+          import urllib.request
+          import urllib.error
+ 
+          token = os.environ["GITHUB_TOKEN"]
+          gist_id = os.environ["GIST_ID"]
+          filename = os.environ["FILENAME"]
+          new_value = os.environ["NEW_VALUE"]
+ 
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {token}",
+              "X-GitHub-Api-Version": "2022-11-28",
+              "User-Agent": "toggle-am-down-workflow",
+          }
+ 
+          body = json.dumps({"files": {filename: {"content": new_value}}}).encode("utf-8")
+          req = urllib.request.Request(
               f"https://api.github.com/gists/{gist_id}",
+              data=body,
+              headers={**headers, "Content-Type": "application/json"},
               method="PATCH",
-              body={"files": {filename: {"content": new_value}}},
           )
-
+          try:
+              with urllib.request.urlopen(req) as resp:
+                  resp.read()
+          except urllib.error.HTTPError as e:
+              print(f"::error::HTTP {e.code}: {e.read().decode('utf-8', errors='replace')}")
+              sys.exit(1)
+ 
           print(f"완료: {filename} -> {new_value}")
           EOF
+ 
