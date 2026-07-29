@@ -1,0 +1,87 @@
+name: Auto Measure Data Save Toggle
+
+on:
+  # schedule:
+  #   # 💡 KST 월~금 아침 7시는 UTC 기준 일~목 밤 22시 (0 22 * * 0-4)
+  #   - cron: '13 23 * * 0-4'
+  # push:
+  #   # 💡 중요: 봇이 파일을 푸시했을 때 이 워크플로우가 다시 실행되는 무한 루프를 원천 차단합니다.
+  #   paths-ignore:
+  #     - 'labview-AM-down.txt'
+  workflow_dispatch: # 수동 실행 버튼
+
+jobs:
+  toggle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Toggle SHUTDOWN value in gist
+        env:
+          # Repo Settings > Secrets and variables > Actions 에
+          # "GIST_PAT" 라는 이름으로 gist 권한이 있는 Personal Access Token 등록 필요
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_PUSH_TOKEN_GD }}
+          GIST_ID: ${{ secrets.LABVIEW_GIST_ID }}
+          FILENAME: ${{ 'labview-AM-data-save.txt' }}
+          # FILENAME: ${{ 'labview-down.txt' }}
+          
+        run: |
+          python3 - <<'EOF'
+          import json
+          import os
+          import sys
+          import urllib.request
+          import urllib.error
+
+          token = os.environ["GITHUB_TOKEN"]
+          gist_id = os.environ["GIST_ID"]
+          filename = os.environ["FILENAME"]
+
+          TOGGLE_MAP = {
+              "SAVETRUE": "SAVEFALSE",
+              "SAVEFALSE": "SAVETRUE",
+          }
+
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {token}",
+              "X-GitHub-Api-Version": "2022-11-28",
+              "User-Agent": "toggle-am-down-workflow",
+          }
+
+          def api_request(url, method="GET", body=None):
+              data = json.dumps(body).encode("utf-8") if body is not None else None
+              req = urllib.request.Request(url, data=data, headers=headers, method=method)
+              if body is not None:
+                  req.add_header("Content-Type", "application/json")
+              try:
+                  with urllib.request.urlopen(req) as resp:
+                      return json.loads(resp.read().decode("utf-8"))
+              except urllib.error.HTTPError as e:
+                  print(f"::error::HTTP {e.code}: {e.read().decode('utf-8', errors='replace')}")
+                  sys.exit(1)
+
+          # 1) 현재 값 읽기 (api.github.com 사용, raw URL은 캐시 문제 있음)
+          data = api_request(f"https://api.github.com/gists/{gist_id}")
+          files = data.get("files", {})
+          if filename not in files:
+              print(f"::error::'{filename}' 파일을 gist에서 찾을 수 없습니다. 사용 가능: {list(files.keys())}")
+              sys.exit(1)
+
+          current = files[filename]["content"].strip()
+          print(f"현재 값: {current}")
+
+          if current not in TOGGLE_MAP:
+              print(f"::error::예상하지 못한 값 '{current}' (SHUTDOWN/SHUTDOWNFALSE 아님)")
+              sys.exit(1)
+
+          new_value = TOGGLE_MAP[current]
+          print(f"새 값: {new_value}")
+
+          # 2) PATCH로 업데이트
+          api_request(
+              f"https://api.github.com/gists/{gist_id}",
+              method="PATCH",
+              body={"files": {filename: {"content": new_value}}},
+          )
+
+          print(f"완료: {filename} -> {new_value}")
+          EOF
