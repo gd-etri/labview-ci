@@ -43,11 +43,12 @@ jobs:
       cancel-in-progress: false
       
     steps:
-      - name: check AM end triggering
+      - name: Check AM end triggering
+        id: check
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_PUSH_TOKEN_GD }}
           GIST_ID: ${{ secrets.LABVIEW_GIST_ID }}
-          FILENAME: ${{ 'labview-AM-end-triggering.txt' }}
+          FILENAME: labview-AM-end-triggering.txt
         run: |
           python3 - <<'EOF'
           import json
@@ -85,14 +86,21 @@ jobs:
           current = files[filename]["content"].strip()
           print(f"현재 값: {current}")
  
-          if current:
-              print(f"::error::AM END trigger에 의해 AM Shutdown 상태 > AM Shutdonw Toggle skip")
+          if current not in ("TRUE", "FALSE"):
+              print(f"::error::예상하지 못한 값 '{current}' (TRUE/FALSE 아님)")
               sys.exit(1)
-
+ 
+          # 실패(exit 1) 대신 output으로 넘겨서, 이후 스텝을 정상적으로(초록색으로) skip 시킴
+          skip = "true" if current == "TRUE" else "false"
+          if skip == "true":
+              print("AM END trigger에 의해 AM Shutdown 상태 -> AM Shutdown Toggle skip")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"skip={skip}\n")
           EOF
  
       - name: Read current value from gist
         id: read
+        if: steps.check.outputs.skip != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_PUSH_TOKEN_GD }}
           GIST_ID: ${{ secrets.LABVIEW_GIST_ID }}
@@ -153,39 +161,58 @@ jobs:
           EOF
  
       # - name: Random delay (minutes, direction-aware)
+      #   env:
+      #     NEW_VALUE: ${{ steps.read.outputs.new_value }}
+      #     MAX_DELAY_TO_SHUTDOWN: ${{ github.event.inputs.max_delay_to_shutdown || '10' }}
+      #     MAX_DELAY_TO_SHUTDOWNFALSE: ${{ github.event.inputs.max_delay_to_shutdownfalse || '5' }}
+      #   run: |
+      #     # 토글 방향(new_value)에 따라 서로 다른 딜레이 범위 사용
+      #     if [ "$NEW_VALUE" = "SHUTDOWN" ]; then
+      #       MAX_DELAY_MINUTES="$MAX_DELAY_TO_SHUTDOWN"
+      #       echo "방향: SHUTDOWNFALSE -> SHUTDOWN (최대 ${MAX_DELAY_MINUTES}분 딜레이)"
+      #     else
+      #       MAX_DELAY_MINUTES="$MAX_DELAY_TO_SHUTDOWNFALSE"
+      #       echo "방향: SHUTDOWN -> SHUTDOWNFALSE (최대 ${MAX_DELAY_MINUTES}분 딜레이)"
+      #     fi
+ 
+      #     if [ "$MAX_DELAY_MINUTES" -le 0 ] 2>/dev/null; then
+      #       echo "딜레이 없음 (max_delay_minutes=0)"
+      #       exit 0
+      #     fi
+ 
+      #     DELAY_MIN=$(( RANDOM % (MAX_DELAY_MINUTES + 1) ))
+      #     DELAY_SEC=$(( DELAY_MIN * 60 ))
+      #     echo "랜덤 딜레이: ${DELAY_MIN}분 (${DELAY_SEC}초) 대기 중..."
+      #     sleep "$DELAY_SEC"
+      #     echo "대기 완료"
       - name: Random delay (seconds, direction-aware)
+        if: steps.check.outputs.skip != 'true'
         env:
           NEW_VALUE: ${{ steps.read.outputs.new_value }}
-          # MAX_DELAY_TO_SHUTDOWN: ${{ github.event.inputs.max_delay_to_shutdown || '10' }}
-          # MAX_DELAY_TO_SHUTDOWNFALSE: ${{ github.event.inputs.max_delay_to_shutdownfalse || '5' }}
-          MAX_DELAY_TO_SHUTDOWN: ${{ '500' }} # minute > second
-          MAX_DELAY_TO_SHUTDOWNFALSE: ${{ '180' }}
+          MAX_DELAY_SEC_TO_SHUTDOWN: '500'
+          MAX_DELAY_SEC_TO_SHUTDOWNFALSE: '180'
         run: |
-          # 토글 방향(new_value)에 따라 서로 다른 딜레이 범위 사용
+          # 토글 방향(new_value)에 따라 서로 다른 딜레이 범위 사용 (초 단위)
           if [ "$NEW_VALUE" = "SHUTDOWN" ]; then
-            MAX_DELAY_MINUTES="$MAX_DELAY_TO_SHUTDOWN"
-            # echo "방향: SHUTDOWNFALSE -> SHUTDOWN (최대 ${MAX_DELAY_MINUTES}분 딜레이)"
-            echo "방향: SHUTDOWNFALSE -> SHUTDOWN (최대 ${MAX_DELAY_MINUTES}초 딜레이)"
+            MAX_DELAY_SEC="$MAX_DELAY_SEC_TO_SHUTDOWN"
+            echo "방향: SHUTDOWNFALSE -> SHUTDOWN (최대 ${MAX_DELAY_SEC}초 딜레이)"
           else
-            MAX_DELAY_MINUTES="$MAX_DELAY_TO_SHUTDOWNFALSE"
-            # echo "방향: SHUTDOWN -> SHUTDOWNFALSE (최대 ${MAX_DELAY_MINUTES}분 딜레이)"
-            echo "방향: SHUTDOWN -> SHUTDOWNFALSE (최대 ${MAX_DELAY_MINUTES}초 딜레이)"
+            MAX_DELAY_SEC="$MAX_DELAY_SEC_TO_SHUTDOWNFALSE"
+            echo "방향: SHUTDOWN -> SHUTDOWNFALSE (최대 ${MAX_DELAY_SEC}초 딜레이)"
           fi
  
-          if [ "$MAX_DELAY_MINUTES" -le 0 ] 2>/dev/null; then
-            echo "딜레이 없음 (max_delay_minutes=0)"
+          if [ "$MAX_DELAY_SEC" -le 0 ] 2>/dev/null; then
+            echo "딜레이 없음 (max_delay_sec=0)"
             exit 0
           fi
  
-          # DELAY_MIN=$(( RANDOM % (MAX_DELAY_MINUTES + 1) ))
-          # DELAY_SEC=$(( DELAY_MIN * 60 ))
-          DELAY_SEC=$(( RANDOM % (MAX_DELAY_MINUTES + 1) ))
-          # echo "랜덤 딜레이: ${DELAY_MIN}분 (${DELAY_SEC}초) 대기 중..."
+          DELAY_SEC=$(( RANDOM % (MAX_DELAY_SEC + 1) ))
           echo "랜덤 딜레이: ${DELAY_SEC}초 대기 중..."
           sleep "$DELAY_SEC"
           echo "대기 완료"
  
       - name: Update gist with new value
+        if: steps.check.outputs.skip != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_PUSH_TOKEN_GD }}
           GIST_ID: ${{ secrets.LABVIEW_GIST_ID }}
