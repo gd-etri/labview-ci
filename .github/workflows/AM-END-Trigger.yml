@@ -105,6 +105,7 @@ jobs:
           if not isValid:
               print(f"Path validation failed. Path does not start with {prefix_name} or {prefix_id}")
               update_gist_content(down_gist_id, "labview-AM-down.txt", "SHUTDOWN")
+              update_gist_content(down_gist_id, "labview-AM-end-triggering.txt", "TRUE")
           else:
               print("Path validation passed.")
           '
