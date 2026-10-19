@@ -1,0 +1,103 @@
+ryujw AutoAlign PASS  2026-10-08 오전 11:27:13
+hskim83 AutoAlign PASS  2026-10-14 오후 2:40:09
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:03:44
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:05:25
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:07:22
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:09:16
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:12:24
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:13:26
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:18:11
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:19:30
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:20:49
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:21:32
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:22:48
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:24:01
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:25:11
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:27:19
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:29:29
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:30:25
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:31:30
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:32:41
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:34:29
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:36:03
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:37:08
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:39:01
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:39:51
+hskim83 AutoAlign ALIGNED 2n 2026-10-14 오후 3:43:51
+hskim83 AutoAlign ALIGNED 1n 2026-10-14 오후 4:24:35
+hskim83 AutoAlign ALIGNED 1n 2026-10-14 오후 4:25:46
+hskim83 AutoAlign ALIGNED 1n 2026-10-14 오후 4:26:49
+hskim83 AutoAlign ALIGNED 1n 2026-10-14 오후 4:27:54
+hskim83 AutoAlign ALIGNED 1n 2026-10-14 오후 4:28:59
+hskim83 AutoAlign ALIGNED 1n 2026-10-14 오후 4:29:23
+hskim83 AutoAlign ALIGNED 1n 2026-10-14 오후 4:32:08
+hskim83 AutoAlign ALIGNED 1n 2026-10-14 오후 4:33:11
+hskim83 AutoAlign ALIGNED 1n 2026-10-14 오후 4:33:32
+hskim83 AutoAlign ALIGNED 1n 2026-10-14 오후 4:39:24
+hskim83 AutoAlign ALIGNED 1n 2026-10-14 오후 4:40:30
+hskim83 AutoAlign ALIGNED 1n 2026-10-14 오후 4:41:36
+hskim83 AutoAlign ALIGNED 1n 2026-10-14 오후 4:42:42
+hskim83 AutoAlign ALIGNED 1n 2026-10-14 오후 4:43:49
+hskim83 AutoAlign ALIGNED 1n 2026-10-14 오후 4:44:22
+gdchoi AutoAlign PASS  2026-10-14 오후 4:54:44
+gdchoi AutoAlign PASS  2026-10-14 오후 4:57:11
+gdchoi AutoAlign ALIGNED 2n 2026-10-14 오후 5:07:59
+gdchoi AutoAlign ALIGNED 2n 2026-10-14 오후 5:08:48
+gdchoi AutoAlign ALIGNED 2n 2026-10-14 오후 5:09:55
+gdchoi AutoAlign ALIGNED 2n 2026-10-14 오후 5:12:09
+gdchoi AutoAlign ALIGNED 2n 2026-10-14 오후 5:14:08
+gdchoi AutoAlign PASS  2026-10-14 오후 7:20:51
+gdchoi AutoAlign ALIGNED 1n 2026-10-14 오후 7:31:13
+gdchoi AutoAlign ALIGNED 1n 2026-10-14 오후 7:34:49
+gdchoi AutoAlign PASS  2026-10-14 오후 7:43:03
+gdchoi AutoAlign ALIGNED 2n 2026-10-14 오후 7:56:07
+gdchoi AutoAlign ALIGNED 2n 2026-10-14 오후 8:00:32
+gdchoi AutoAlign PASS  2026-10-14 오후 8:02:20
+hskim83 AutoAlign PASS  2026-10-15 오후 1:11:11
+gdchoi AutoAlign PASS  2026-10-16 오후 3:46:51
+gdchoi AutoAlign ALIGNED 2n 2026-10-16 오후 3:56:55
+gdchoi AutoAlign ALIGNED 2n 2026-10-16 오후 4:00:23
+gdchoi AutoAlign ALIGNED 2n 2026-10-16 오후 4:02:15
+gdchoi AutoAlign ALIGNED 2n 2026-10-16 오후 4:03:29
+gdchoi AutoAlign ALIGNED 2n 2026-10-16 오후 4:04:57
+gdchoi AutoAlign ALIGNED 2n 2026-10-16 오후 4:08:58
+gdchoi AutoAlign ALIGNED 2n 2026-10-16 오후 4:13:49
+gdchoi AutoAlign PASS  2026-10-16 오후 4:15:08
+gdchoi AutoAlign PASS  2026-10-16 오후 4:23:25
+gdchoi AutoAlign ALIGNED 1n 2026-10-16 오후 4:26:17
+gdchoi AutoAlign PASS  2026-10-16 오후 4:27:23
+gdchoi AutoAlign PASS  2026-10-16 오후 4:29:37
+gdchoi AutoAlign ALIGNED 1n 2026-10-16 오후 4:31:12
+gdchoi AutoAlign ALIGNED 1n 2026-10-16 오후 4:36:22
+gdchoi AutoAlign ALIGNED 1n 2026-10-16 오후 4:39:10
+gdchoi AutoAlign ALIGNED 1n 2026-10-16 오후 4:40:38
+gdchoi AutoAlign ALIGNED 1n 2026-10-16 오후 4:42:37
+gdchoi AutoAlign ALIGNED 1n 2026-10-16 오후 4:43:47
+gdchoi AutoAlign PASS  2026-10-16 오후 4:45:55
+gdchoi AutoAlign ALIGNED 1n 2026-10-16 오후 4:49:28
+gdchoi AutoAlign ALIGNED 1n 2026-10-16 오후 4:52:36
+gdchoi AutoAlign ALIGNED 1n 2026-10-16 오후 4:53:59
+gdchoi AutoAlign PASS  2026-10-16 오후 4:56:10
+gdchoi AutoAlign PASS  2026-10-16 오후 4:58:10
+gdchoi AutoAlign PASS  2026-10-16 오후 4:59:23
+gdchoi AutoAlign ALIGNED 1n 2026-10-16 오후 5:01:04
+gdchoi AutoAlign PASS  2026-10-16 오후 5:03:41
+gdchoi AutoAlign PASS  2026-10-19 오후 1:53:42
+gdchoi AutoAlign PASS  2026-10-19 오후 2:03:30
+gdchoi AutoAlign PASS  2026-10-19 오후 2:26:09
+gdchoi AutoAlign PASS  2026-10-19 오후 2:26:53
+gdchoi AutoAlign PASS  2026-10-19 오후 2:30:53
+MASTER AutoAlign PASS  2026-10-19 오후 2:41:37
+MASTER AutoAlign PASS  2026-10-19 오후 2:48:08
+MASTER AutoAlign PASS  2026-10-19 오후 2:49:33
+MASTER AutoAlign PASS  2026-10-19 오후 2:51:56
+MASTER AutoAlign PASS  2026-10-19 오후 2:58:53
+MASTER AutoAlign PASS  2026-10-19 오후 3:00:31
+MASTER AutoAlign PASS  2026-10-19 오후 3:01:20
+MASTER AutoAlign PASS  2026-10-19 오후 3:05:37
+MASTER AutoAlign PASS  2026-10-19 오후 3:08:17
+MASTER AutoAlign PASS  2026-10-19 오후 3:09:23
+MASTER AutoAlign PASS  2026-10-19 오후 3:16:18
+MASTER AutoAlign PASS  2026-10-19 오후 3:16:58
+MASTER AutoAlign PASS  2026-10-19 오후 3:23:33
+MASTER AutoAlign PASS  2026-10-19 오후 3:33:30
