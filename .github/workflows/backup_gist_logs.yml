@@ -1,18 +1,16 @@
 name: Backup Gist Logs to Repository
 
 on:
-  # 외부 cron-job 서비스에서 호출 시 사용할 트리거
   repository_dispatch:
     types: [labview-backup-logs-trigger]
-  # GitHub Actions 탭에서 수동 실행 버튼
   workflow_dispatch:
 
 permissions:
-  contents: write  # main 브랜치에 직접 커밋 및 푸시하기 위한 권한
+  contents: write
 
 jobs:
   backup-gist-logs:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -21,106 +19,112 @@ jobs:
           ref: main
           token: ${{ secrets.ACTIONS_PUSH_TOKEN_GD }}
 
-      - name: Check Message from Trigger
-        if: github.event_name == 'repository_dispatch'
-        run: |
-          echo "전달된 메시지: ${{ github.event.client_payload.message }}"
-
       - name: Backup Gist Logs and Reset Gist Files
         env:
-          GH_TOKEN: ${{ secrets.ACTIONS_PUSH_TOKEN_GD }}
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_PUSH_TOKEN_GD }}
           GIST_ID: ${{ secrets.LABVIEW_GIST_ID }}
-        shell: bash
         run: |
-          python3 -c "
+          python3 - <<'EOF'
           import os
+          import sys
           import json
           import urllib.request
+          import urllib.error
           from datetime import datetime, timezone, timedelta
 
-          gist_id = os.environ['GIST_ID']
-          token = os.environ['GH_TOKEN']
+          token = os.environ["GITHUB_TOKEN"]
+          gist_id = os.environ["GIST_ID"]
 
-          file_mapping = {
-              'labview-aa-end-log.txt': 'LOGS-AA-END',
-              'labview-aa-log.txt': 'LOGS-AA',
-              'labview-am-end-log.txt': 'LOGS-AM-END',
-              'labview-am-log.txt': 'LOGS-AM',
-              'labview-login-log.txt': 'LOGS-LOGIN',
-              'labview-login-try-log.txt': 'LOGS-TRY-LOGIN',
+          # 소문자 기준으로 매핑 (실제 Gist 파일명이 대문자 AA/AM 이어도 자동 매칭)
+          target_mapping = {
+              "labview-aa-end-log.txt": "LOGS-AA-END",
+              "labview-aa-log.txt": "LOGS-AA",
+              "labview-am-end-log.txt": "LOGS-AM-END",
+              "labview-am-log.txt": "LOGS-AM",
+              "labview-login-log.txt": "LOGS-LOGIN",
+              "labview-login-try-log.txt": "LOGS-TRY-LOGIN",
           }
 
-          def github_api(url, method='GET', data=None):
-              headers = {
-                  'Authorization': f'Bearer {token}',
-                  'Accept': 'application/vnd.github+json',
-                  'User-Agent': 'labview-ci-log-backup'
-              }
-              body = json.dumps(data).encode('utf-8') if data is not None else None
-              req = urllib.request.Request(url, data=body, headers=headers, method=method)
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {token}",
+              "X-GitHub-Api-Version": "2022-11-28",
+              "User-Agent": "backup-gist-logs-workflow",
+          }
+
+          gist_url = f"https://api.github.com/gists/{gist_id}"
+          req = urllib.request.Request(gist_url, headers=headers, method="GET")
+          try:
               with urllib.request.urlopen(req) as resp:
-                  return json.loads(resp.read().decode('utf-8'))
+                  data = json.loads(resp.read().decode("utf-8"))
+          except urllib.error.HTTPError as e:
+              print(f"::error::HTTP {e.code}: {e.read().decode('utf-8', errors='replace')}")
+              sys.exit(1)
 
-          # 한국 시간(KST, UTC+9) 기준 파일명 (예: 20261119)
+          files = data.get("files", {})
+          # 실제 Gist 파일명 매핑 {소문자_파일명: 실제_파일명}
+          actual_filenames = {k.lower(): k for k in files.keys()}
+
           kst_now = datetime.now(timezone.utc) + timedelta(hours=9)
-          today_str = kst_now.strftime('%Y%m%d')
+          today_str = kst_now.strftime("%Y%m%d")
+          print(f"📅 기준 날짜(KST): {today_str}")
 
-          gist_url = f'https://api.github.com/gists/{gist_id}'
-          gist_data = github_api(gist_url)
-          files = gist_data.get('files', {})
+          gist_update_payload = {"files": {}}
 
-          gist_update_payload = {'files': {}}
-
-          for gist_filename, target_dir in file_mapping.items():
-              if gist_filename not in files:
-                  print(f'⚠️ [SKIP] {gist_filename} 파일이 Gist에 없습니다.')
+          for lower_name, target_dir in target_mapping.items():
+              if lower_name not in actual_filenames:
+                  print(f"⚠️ [SKIP] '{lower_name}'에 해당하는 파일을 Gist에서 찾을 수 없습니다.")
                   continue
 
-              content = files[gist_filename].get('content', '')
+              real_filename = actual_filenames[lower_name]
+              content = files[real_filename].get("content", "")
               lines = content.splitlines()
 
-              # 첫 줄만 있거나 내용이 없는 경우 스킵
               if len(lines) <= 1:
-                  print(f'ℹ️ [SKIP] {gist_filename}: 백업할 2번째 줄 이후 내용이 없습니다.')
+                  print(f"ℹ️ [SKIP] {real_filename}: 백업할 2번째 줄 이후 내용이 없습니다.")
                   continue
 
               first_line = lines[0]
               backup_lines = lines[1:]
 
-              # 2번째 줄부터 마지막 줄까지 실질적인 로그 내용이 있는지 확인 (공백 줄만 있는 경우 제외)
               if not any(line.strip() for line in backup_lines):
-                  print(f'ℹ️ [SKIP] {gist_filename}: 2번째 줄 이후 빈 줄만 존재합니다.')
+                  print(f"ℹ️ [SKIP] {real_filename}: 2번째 줄 이후 빈 줄만 존재합니다.")
                   continue
 
-              # 해당 폴더에 백업 파일 생성 (예: LOGS-AA/20261119.txt)
               os.makedirs(target_dir, exist_ok=True)
-              backup_filepath = os.path.join(target_dir, f'{today_str}.txt')
+              backup_filepath = os.path.join(target_dir, f"{today_str}.txt")
 
-              # 같은 날짜에 이미 백업된 파일이 있으면 이어쓰기(append), 없으면 새로 생성(write)
-              mode = 'a' if os.path.exists(backup_filepath) else 'w'
-              with open(backup_filepath, mode, encoding='utf-8') as f:
-                  if mode == 'a':
-                      f.write('\n')
-                  f.write('\n'.join(backup_lines) + '\n')
+              mode = "a" if os.path.exists(backup_filepath) else "w"
+              with open(backup_filepath, mode, encoding="utf-8") as f:
+                  if mode == "a":
+                      f.write("\n")
+                  f.write("\n".join(backup_lines) + "\n")
 
-              print(f'✅ [BACKUP] {gist_filename} -> {backup_filepath} ({len(backup_lines)}줄 저장)')
+              print(f"✅ [BACKUP] {real_filename} -> {backup_filepath} ({len(backup_lines)}줄 저장)")
 
-              # 원본 Gist 파일 초기화 데이터 구성: 1번째 줄 유지 + 2번째 줄 빈칸
-              gist_update_payload['files'][gist_filename] = {
-                  'content': f'{first_line}\n'
+              # 실제 원본 파일명 그대로 업데이트: 1번째 줄 유지 + 2번째 줄 빈칸
+              gist_update_payload["files"][real_filename] = {
+                  "content": f"{first_line}\n"
               }
 
-          # 백업된 로그가 하나라도 있으면 원본 Gist 일괄 업데이트
-          if gist_update_payload['files']:
+          if gist_update_payload["files"]:
+              body = json.dumps(gist_update_payload).encode("utf-8")
+              patch_req = urllib.request.Request(
+                  gist_url,
+                  data=body,
+                  headers={**headers, "Content-Type": "application/json"},
+                  method="PATCH",
+              )
               try:
-                  github_api(gist_url, method='PATCH', data=gist_update_payload)
-                  print('🎉 원본 Gist 파일 정리 완료 (1번째 줄 유지, 2번째 줄 빈칸 처리)')
-              except Exception as e:
-                  print(f'🚨 Gist 업데이트 실패: {e}')
-                  exit(1)
+                  with urllib.request.urlopen(patch_req) as resp:
+                      resp.read()
+                  print("🎉 원본 Gist 파일 정리 완료 (1번째 줄 유지, 2번째 줄 빈칸)")
+              except urllib.error.HTTPError as e:
+                  print(f"::error::HTTP {e.code}: {e.read().decode('utf-8', errors='replace')}")
+                  sys.exit(1)
           else:
-              print('ℹ️ 백업하거나 초기화할 새로운 로그가 없습니다.')
-          "
+              print("ℹ️ 백업하거나 초기화할 새로운 로그가 없습니다.")
+          EOF
 
       - name: Commit and Push directly to main branch
         run: |
@@ -129,10 +133,10 @@ jobs:
 
           git add LOGS-*
           if git diff --staged --quiet; then
-            echo "변경된 로그 파일이 없어 커밋을 건너뜁니다."
+            echo "변경된 파일이 없어 커밋하지 않습니다."
           else
             TZ='Asia/Seoul' TODAY=$(date +'%Y%m%d')
             git commit -m "Backup Gist logs ($TODAY)"
             git push origin main
-            echo "🚀 main 브랜치에 백업 파일 커밋 및 푸시 완료!"
+            echo "🚀 main 브랜치에 푸시 완료!"
           fi
