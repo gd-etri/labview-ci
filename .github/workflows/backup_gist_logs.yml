@@ -85,7 +85,13 @@ jobs:
                   continue
 
               first_line = lines[0]
-              backup_lines = lines[1:]
+              
+              # 변경 전 (2번째 줄의 빈 줄까지 포함해서 백업)
+              # backup_lines = lines[1:]
+
+              # 변경 후 (2번째 줄 이후 중 내용이 있는 줄만 골라서 백업)
+              backup_lines = [line for line in lines[1:] if line.strip()]
+              
 
               if not any(line.strip() for line in backup_lines):
                   print(f"ℹ️ [SKIP] {real_filename}: 2번째 줄 이후 빈 줄만 존재합니다.")
